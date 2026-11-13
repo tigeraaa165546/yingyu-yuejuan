@@ -431,9 +431,12 @@
   <div class="box">
     <h3>拍卡识别（手机拍答题卡直接得分）</h3>
     <div class="hint">
-      「拍卡」页：整张 A3 平拍 → 自动对齐四个黑色定位块 → 识别涂点 → 检查结果 → 「填入答卷并去批改」自动判分。<br>
-      · 只识别选择题涂点；单词题和作文仍需手动。<br>
-      · 橙色（歧义/双涂）和灰色（未涂）的题要点开改一下。<br>
+      「拍卡」页：点「打开相机 · 一按出分」→ 整张 A3 放进虚线框 → 按快门，自动对齐四个黑色定位块、识别涂点、当场算出分数。<br>
+      · 出分卡上是客观题得分（满分 80）和折合百分制，不含单词题和作文。<br>
+      · 橙色（歧义/双涂）和灰色（未涂）的题点一下就能改成正确选项，改完分数立刻跟着变。<br>
+      · 分数对了点「直接记分 · 存这份并下一份」，姓名/考号取「批改」页当前填的内容，存完自动跳下一个名字，接着拍。<br>
+      · 手机打不开相机时，用「从相册选 / 系统相机」，选完照片同样自动出分。<br>
+      · 只识别选择题涂点；七、补全单词和十一、作文仍需手动录入。<br>
       · 点结果圆片可循环改：选项 → 空。<br>
       · 光线要均匀，阴影会让识别变差；识别在手机本地完成，照片不上传。
     </div>
@@ -1485,9 +1488,8 @@ function camSave(){
   saveStudent(true);
   tab("cam");
   camState.results = null; camState.overrides = {};
-  $("camScore").innerHTML = ""; $("camResult").innerHTML = '<div class="hint">这一份已存：' + (h.name || h.no) + ' · ' + s.g.total + ' 分（客观题 ' + s.obj + ' / ' + s.objMax + '，' + set + ' 题）。拍下一张。</div>';
+  $("camScore").innerHTML = ""; $("camResult").innerHTML = '<div class="hint">这一份已存：' + (h.name || h.no) + ' · ' + s.g.total + ' 分（客观题 ' + s.obj + ' / ' + s.objMax + '，' + set + ' 题）。' + (camStream ? '对准下一张，直接按快门。' : '拍下一张。') + '</div>';
   $("camStat").textContent = "";
-  camLiveClose();
 }
 function camJudge(qid){
   const dks = camState.results[qid];
