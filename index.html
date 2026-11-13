@@ -184,6 +184,25 @@
     body.printing-sheet #sheetModal .sheetCard{max-width:none;border-radius:0;padding:10px}
     @page{size:A4 portrait;margin:12mm}
   }
+
+  /* 拍卡：实时相机 + 出分卡 */
+  .camlive{position:relative;margin-top:10px;border-radius:12px;overflow:hidden;background:#111}
+  .camlive video{display:block;width:100%;max-height:62vh;object-fit:contain;background:#111}
+  .camlive .frame{position:absolute;inset:8% 6%;border:2px dashed rgba(255,255,255,.75);border-radius:8px;pointer-events:none}
+  .camlive .frame::before,.camlive .frame::after{content:"";position:absolute;width:22px;height:22px;border:3px solid #6ff0d8}
+  .camlive .frame::before{left:-2px;top:-2px;border-right:none;border-bottom:none}
+  .camlive .frame::after{right:-2px;bottom:-2px;border-left:none;border-top:none}
+  .scard{background:linear-gradient(120deg,#0f5f57,#1f8d80);color:#fff;border-radius:13px;padding:14px 16px;margin-bottom:10px}
+  .scard .sbig{font-size:40px;font-weight:800;line-height:1.05;letter-spacing:-1px}
+  .scard .sbig span{font-size:13px;font-weight:600;opacity:.85;margin-left:6px;letter-spacing:0}
+  .scard .sline{font-size:13px;opacity:.92;margin-top:5px}
+  .scard .sline b{font-size:16px}
+  .scard .shint{font-size:12px;opacity:.85;margin-top:6px;line-height:1.6}
+  .scard .schips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .scard .schips i{font-style:normal;font-size:11.5px;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.18)}
+  .scard .schips i.r{background:#ffd9d4;color:#8c2c20}
+  .scard .schips i.y{background:#fff0cc;color:#7a5800}
+  .scard .schips i.g{background:rgba(255,255,255,.18)}
 </style>
 </head>
 <body>
@@ -289,9 +308,18 @@
     <h3>① 拍答题卡</h3>
     <input type="file" id="camFile" accept="image/*" capture="environment" style="display:none">
     <div class="row">
-      <button class="btn" onclick="document.getElementById('camFile').click()">拍照 / 从相册选</button>
+      <button class="btn" id="camLiveBtn" onclick="camLive()">打开相机 · 一按出分</button>
+      <button class="btn ghost" onclick="document.getElementById('camFile').click()">从相册选 / 系统相机</button>
       <button class="btn ghost" onclick="camRotate()">旋转 90°</button>
       <button class="btn ghost" onclick="camDetect()">重新定位</button>
+    </div>
+    <div id="camLiveBox" style="display:none">
+      <div class="camlive"><video id="camVideo" playsinline autoplay muted></video><div class="frame"></div></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" onclick="camShoot()">快门 · 识别并出分</button>
+        <button class="btn ghost" onclick="camLiveClose()">关掉相机</button>
+        <span class="hint">整张卡放进虚线框，四个黑角块都要露出来</span>
+      </div>
     </div>
     <div class="hint" style="margin-top:8px">
       把 A3 答题卡<b>整张平拍</b>，光线均匀、四个黑色定位块都要在画面里。工具靠四个黑块自动对齐，拍歪一点没关系；定位不准时可以拖动四个圆点微调。
@@ -301,10 +329,12 @@
   </div>
   <div class="box">
     <h3>② 识别结果（点结果可改：循环选项 → 空）</h3>
+    <div id="camScore"></div>
     <div id="camResult"><div class="hint">还没识别。拍完照点下方「识别涂卡」。</div></div>
     <div class="row" style="margin-top:10px">
       <button class="btn ghost" onclick="camRecognize()">识别涂卡</button>
-      <button class="btn" onclick="camApply()">填入答卷并去批改</button>
+      <button class="btn" onclick="camSave()">直接记分 · 存这份并下一份</button>
+      <button class="btn ghost" onclick="camApply()">填入答卷并去批改</button>
       <span class="hint" id="camStat"></span>
     </div>
   </div>
@@ -1134,6 +1164,48 @@ const CAM_BARS = {tl:[48.0,34.0], tr:[957.6,34.0], br:[957.6,671.4], bl:[48.0,67
 const CAL_Q = {"s1-1":[["A",0.08332,0.39283],["B",0.09962,0.39283],["C",0.11592,0.39283]],"s1-2":[["A",0.08332,0.40874],["B",0.09962,0.40874],["C",0.11592,0.40874]],"s1-3":[["A",0.17011,0.39283],["B",0.18641,0.39283],["C",0.20272,0.39283]],"s1-4":[["A",0.17011,0.40874],["B",0.18641,0.40874],["C",0.20272,0.40874]],"s1-5":[["A",0.2569,0.39283],["B",0.27321,0.39283],["C",0.28951,0.39283]],"s10-1":[["T",0.55588,0.45004],["F",0.57219,0.45004]],"s10-2":[["T",0.55588,0.46595],["F",0.57219,0.46595]],"s10-3":[["T",0.55588,0.48186],["F",0.57219,0.48186]],"s10-4":[["T",0.55588,0.49777],["F",0.57219,0.49777]],"s10-5":[["T",0.55588,0.51368],["F",0.57219,0.51368]],"s11-1":[["A",0.55588,0.57766],["B",0.57219,0.57766],["C",0.58849,0.57766]],"s11-2":[["A",0.55588,0.59357],["B",0.57219,0.59357],["C",0.58849,0.59357]],"s11-3":[["A",0.55588,0.60948],["B",0.57219,0.60948],["C",0.58849,0.60948]],"s11-4":[["A",0.55588,0.62539],["B",0.57219,0.62539],["C",0.58849,0.62539]],"s11-5":[["A",0.55588,0.6413],["B",0.57219,0.6413],["C",0.58849,0.6413]],"s2-1":[["A",0.08332,0.47272],["B",0.09962,0.47272],["C",0.11592,0.47272],["D",0.13223,0.47272],["E",0.14853,0.47272]],"s2-2":[["A",0.08332,0.48863],["B",0.09962,0.48863],["C",0.11592,0.48863],["D",0.13223,0.48863],["E",0.14853,0.48863]],"s2-3":[["A",0.20344,0.47272],["B",0.21974,0.47272],["C",0.23604,0.47272],["D",0.25235,0.47272],["E",0.26865,0.47272]],"s2-4":[["A",0.20344,0.48863],["B",0.21974,0.48863],["C",0.23604,0.48863],["D",0.25235,0.48863],["E",0.26865,0.48863]],"s2-5":[["A",0.32356,0.47272],["B",0.33986,0.47272],["C",0.35616,0.47272],["D",0.37247,0.47272],["E",0.38877,0.47272]],"s3-1":[["T",0.08332,0.55261],["F",0.09962,0.55261]],"s3-2":[["T",0.15333,0.55261],["F",0.16963,0.55261]],"s3-3":[["T",0.22334,0.55261],["F",0.23964,0.55261]],"s3-4":[["T",0.29335,0.55261],["F",0.30965,0.55261]],"s3-5":[["T",0.36336,0.55261],["F",0.37966,0.55261]],"s4-1":[["A",0.08332,0.61659],["B",0.09962,0.61659],["C",0.11592,0.61659]],"s4-2":[["A",0.08332,0.6325],["B",0.09962,0.6325],["C",0.11592,0.6325]],"s4-3":[["A",0.17011,0.61659],["B",0.18641,0.61659],["C",0.20272,0.61659]],"s4-4":[["A",0.17011,0.6325],["B",0.18641,0.6325],["C",0.20272,0.6325]],"s4-5":[["A",0.2569,0.61659],["B",0.27321,0.61659],["C",0.28951,0.61659]],"s5-1":[["A",0.08332,0.69647],["B",0.09962,0.69647],["C",0.11592,0.69647]],"s5-2":[["A",0.08332,0.71238],["B",0.09962,0.71238],["C",0.11592,0.71238]],"s5-3":[["A",0.17011,0.69647],["B",0.18641,0.69647],["C",0.20272,0.69647]],"s5-4":[["A",0.17011,0.71238],["B",0.18641,0.71238],["C",0.20272,0.71238]],"s5-5":[["A",0.2569,0.69647],["B",0.27321,0.69647],["C",0.28951,0.69647]],"s6-1":[["A",0.08332,0.77636],["B",0.09962,0.77636],["C",0.11592,0.77636]],"s6-2":[["A",0.08332,0.79227],["B",0.09962,0.79227],["C",0.11592,0.79227]],"s6-3":[["A",0.08332,0.80818],["B",0.09962,0.80818],["C",0.11592,0.80818]],"s6-4":[["A",0.08332,0.82409],["B",0.09962,0.82409],["C",0.11592,0.82409]],"s6-5":[["A",0.08332,0.84],["B",0.09962,0.84],["C",0.11592,0.84]],"s8-1":[["A",0.55588,0.19481],["B",0.57219,0.19481],["C",0.58849,0.19481]],"s8-2":[["A",0.55588,0.21072],["B",0.57219,0.21072],["C",0.58849,0.21072]],"s8-3":[["A",0.55588,0.22663],["B",0.57219,0.22663],["C",0.58849,0.22663]],"s8-4":[["A",0.55588,0.24254],["B",0.57219,0.24254],["C",0.58849,0.24254]],"s8-5":[["A",0.55588,0.25845],["B",0.57219,0.25845],["C",0.58849,0.25845]],"s9-1":[["A",0.55588,0.32243],["B",0.57219,0.32243],["C",0.58849,0.32243],["D",0.6048,0.32243],["E",0.6211,0.32243]],"s9-2":[["A",0.55588,0.33834],["B",0.57219,0.33834],["C",0.58849,0.33834],["D",0.6048,0.33834],["E",0.6211,0.33834]],"s9-3":[["A",0.55588,0.35425],["B",0.57219,0.35425],["C",0.58849,0.35425],["D",0.6048,0.35425],["E",0.6211,0.35425]],"s9-4":[["A",0.55588,0.37016],["B",0.57219,0.37016],["C",0.58849,0.37016],["D",0.6048,0.37016],["E",0.6211,0.37016]],"s9-5":[["A",0.55588,0.38606],["B",0.57219,0.38606],["C",0.58849,0.38606],["D",0.6048,0.38606],["E",0.6211,0.38606]]};
 
 const camState = {img:null, pts:null, drag:-1, results:null, overrides:{}};
+let camStream = null;
+
+async function camLive(){
+  const box = $("camLiveBox"), v = $("camVideo");
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast("这个浏览器不支持直接开相机，用「从相册选 / 系统相机」"); return;
+  }
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ideal:"environment"}, width:{ideal:2560}, height:{ideal:1440} }, audio:false
+    });
+    v.srcObject = camStream;
+    box.style.display = "block";
+    $("camLiveBtn").style.display = "none";
+    try{ await v.play(); }catch(e){}
+    $("camTip").textContent = "对准整张答题卡，四个黑角块都在虚线框内，按快门。";
+    box.scrollIntoView({block:"center", behavior:"smooth"});
+  }catch(err){
+    toast("相机打不开（要用 https 打开并允许权限）。可以点「从相册选 / 系统相机」");
+  }
+}
+function camLiveClose(){
+  if(camStream){ camStream.getTracks().forEach(t=>{ try{ t.stop(); }catch(e){} }); camStream = null; }
+  try{ $("camVideo").srcObject = null; }catch(e){}
+  $("camLiveBox").style.display = "none";
+  $("camLiveBtn").style.display = "";
+}
+function camShoot(){
+  const v = $("camVideo");
+  if(!v.videoWidth){ toast("相机还没准备好，等一下再按"); return; }
+  const c = document.createElement("canvas");
+  const sc = Math.min(1, 2200 / Math.max(v.videoWidth, v.videoHeight));
+  c.width = Math.round(v.videoWidth*sc); c.height = Math.round(v.videoHeight*sc);
+  c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+  const im = new Image();
+  im.onload = () => {
+    camState.img = im; camState.results = null; camState.overrides = {};
+    camFitCanvas(); camDetect(); camRecognize();
+    $("camScore").scrollIntoView({block:"center", behavior:"smooth"});
+  };
+  im.src = c.toDataURL("image/jpeg", 0.92);
+}
 
 function camOnFile(e){
   const f = e.target.files && e.target.files[0];
@@ -1143,7 +1215,7 @@ function camOnFile(e){
     const im = new Image();
     im.onload = () => {
       camState.img = im; camState.results = null; camState.overrides = {};
-      camFitCanvas(); camDetect();
+      camFitCanvas(); camDetect(); camRecognize();
     };
     im.src = fr.result;
   };
@@ -1325,7 +1397,97 @@ function camRecognize(){
   renderCamResult();
   camDraw();
   const okN = Object.keys(res).filter(q=>res[q][0][0]>=0.30 && res[q][0][0]-res[q][1][0]>=0.10).length;
-  toast("识别完成：可确定 " + okN + " 题");
+  const sm = camScoreInfo();
+  toast(sm.hasKey ? ("识别完成 · 客观题 " + sm.obj + " / " + sm.objMax) : ("识别完成：可确定 " + okN + " 题"));
+}
+const CAM_GRADED = ["s1","s2","s3","s4","s5","s6","s8","s9","s10","s11"];
+function camAnswers(){
+  const a = {};
+  CAM_GRADED.forEach(sid=>{
+    for(let i=1;i<=5;i++){
+      const id = sid + "-" + i;
+      const ov = camState.overrides[id];
+      if(ov !== undefined){ if(ov !== "") a[id] = ov; continue; }
+      if(!CAL_Q[id]) continue;
+      const j = camJudge(id);
+      if(j.s === "ok") a[id] = j.v;
+    }
+  });
+  return a;
+}
+function camScoreInfo(){
+  const a = camAnswers();
+  const merged = Object.assign({}, cur, a);
+  const g = gradeOne(merged);
+  let obj = 0, objMax = 0;
+  CAM_GRADED.forEach(sid=>{
+    obj += (g.scores[sid] || 0);
+    const s3 = SECS.find(x=>x.id === sid);
+    objMax += s3.n * perOf(sid + "-1");
+  });
+  let amb = 0, none = 0;
+  CAM_GRADED.forEach(sid=>{
+    for(let i=1;i<=5;i++){
+      const id = sid + "-" + i;
+      const ov = camState.overrides[id];
+      if(ov !== undefined){ if(ov === "") none++; continue; }
+      const j = camJudge(id);
+      if(j.s === "amb") amb++; else if(j.s === "none") none++;
+    }
+  });
+  const hasKey = CAM_GRADED.filter(sid=>keyOf(sid + "-1")).length > 0;
+  return {g, a, merged, obj:r2(obj), objMax, hasKey, amb, none, n:Object.keys(a).length};
+}
+function renderCamScore(){
+  const box = $("camScore"); if(!box) return;
+  if(!camState.results){ box.innerHTML = ""; return; }
+  const s = camScoreInfo();
+  let html = '<div class="scard">';
+  if(!s.hasKey){
+    html += '<div class="sbig">' + s.n + '<span>题已识别</span></div>' +
+            '<div class="shint">标准答案还没设，暂时只能数出识别到几题。去「标准答案」页把答案填上（或批改一份后点「按这份卷设为答案」），回来拍卡就直接出分。</div>';
+  }else{
+    const pct = s.objMax ? Math.round(s.obj / s.objMax * 1000) / 10 : 0;
+    html += '<div class="sbig">' + s.obj + '<span>/ ' + s.objMax + ' 客观题</span></div>' +
+            '<div class="sline">折合百分制 <b>' + pct + '</b> · 已识别 ' + s.n + ' 题' +
+            (s.g.total !== s.obj ? ' · 连已录的单词/作文共 ' + s.g.total + ' 分' : '') + '</div>' +
+            '<div class="schips">' +
+            (s.amb ? '<i class="r">待确认 ' + s.amb + '</i>' : '') +
+            (s.none ? '<i class="y">未涂 ' + s.none + '</i>' : '') +
+            (s.amb || s.none ? '' : '<i class="g">全部识别清楚</i>') +
+            '<i class="g">七 / 十一 需手动</i></div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+function camFill(){
+  let set = 0;
+  allIds().forEach(id=>{
+    const s2 = secOf(id);
+    if(isScore(s2) || isText(s2)) return;
+    if(cur[id] !== undefined) delete cur[id];
+  });
+  const a = camAnswers();
+  for(const id in a){ setAns(id, a[id]); set++; }
+  refreshMarks();
+  return set;
+}
+function camSave(){
+  if(!camState.results){ toast("先拍照识别"); return; }
+  const h = headInfo();
+  if(!h.name && !h.no){
+    toast("先填姓名或考号，不然不知道这是谁的卷");
+    tab("grade"); $("inNo").focus();
+    return;
+  }
+  const set = camFill();
+  const s = camScoreInfo();
+  saveStudent(true);
+  tab("cam");
+  camState.results = null; camState.overrides = {};
+  $("camScore").innerHTML = ""; $("camResult").innerHTML = '<div class="hint">这一份已存：' + (h.name || h.no) + ' · ' + s.g.total + ' 分（客观题 ' + s.obj + ' / ' + s.objMax + '，' + set + ' 题）。拍下一张。</div>';
+  $("camStat").textContent = "";
+  camLiveClose();
 }
 function camJudge(qid){
   const dks = camState.results[qid];
@@ -1361,6 +1523,7 @@ function renderCamResult(){
   });
   $("camResult").innerHTML = html;
   $("camStat").textContent = "确定 " + okN + " · 待确认 " + ambN + " · 未涂 " + noneN + "（其余手动）";
+  renderCamScore();
 }
 function camCycle(qid){
   const sec = secOf(qid);
