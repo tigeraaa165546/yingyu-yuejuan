@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>英语答题卡阅卷工具 · 冠县第一学期英语期中考试</title>
+<title>英语答题卡批改工具 · A3 双版 · 手机可用</title>
 <style>
   :root{
     --bg:#f4f7f6; --card:#ffffff; --ink:#1c2b2a; --sub:#6b807d;
@@ -16,9 +16,9 @@
   header .sub{font-size:12px;opacity:.85;margin-top:3px}
   nav{display:flex;gap:4px;margin-top:12px}
   nav button{flex:1;padding:9px 0;border:none;background:rgba(255,255,255,.14);color:#e8f5f2;font-size:14px;
-    border-radius:10px 10px 0 0;cursor:pointer;font-weight:600}
+    border-radius:10px 10px 0 0;cursor:pointer;font-weight:600;font-family:inherit}
   nav button.on{background:var(--bg);color:var(--acc)}
-  main{max-width:860px;margin:0 auto;padding:14px 14px 0}
+  main{max-width:1080px;margin:0 auto;padding:14px 14px 0}
   .panel{display:none}
   .panel.on{display:block}
   .box{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(21,122,110,.07)}
@@ -29,14 +29,37 @@
     padding:8px 10px;background:#fff;color:var(--ink);outline:none}
   input:focus,textarea:focus{border-color:var(--acc2)}
   button.btn{border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
-    background:var(--acc);color:#fff}
+    background:var(--acc);color:#fff;font-family:inherit}
   button.btn.ghost{background:#fff;color:var(--acc);border:1.5px solid var(--acc)}
   button.btn.warn{background:#fff;color:var(--warn);border:1.5px solid var(--warn)}
   button.btn:active{transform:scale(.98)}
 
   .statusbar{display:flex;align-items:center;justify-content:space-between;gap:8px;
-    background:#0f5f57;color:#fff;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px}
+    background:#0f5f57;color:#fff;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px}
   .statusbar b{font-size:20px}
+
+  /* 卷头 */
+  .headbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:7px;align-items:end}
+  .headbar label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--sub);font-weight:700}
+  .headbar input{padding:8px 8px;font-size:15px}
+  .absent{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--warn);font-weight:700;
+    padding:9px 10px;border:1.5px dashed #d35b4d;border-radius:9px;cursor:pointer;user-select:none;background:#fff}
+  .absent.on{background:#fdecea;border-style:solid}
+
+  /* A3 双版 */
+  .jump{position:sticky;top:0;z-index:50;display:flex;gap:6px;background:var(--bg);padding:7px 0;margin-bottom:8px}
+  .jump button{flex:1;min-height:40px;border:1.5px solid var(--acc);background:#fff;color:var(--acc);
+    border-radius:10px;font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer}
+  .jump button:active{transform:scale(.98)}
+  .a3wrap{display:block}
+  .page{background:#fff;border:1.5px dashed #b9cfc9;border-radius:14px;padding:12px;margin-bottom:12px}
+  .page .ph{font-size:12.5px;color:#255551;font-weight:800;margin-bottom:2px}
+  .page .ps{font-size:11px;color:var(--sub);margin-bottom:9px}
+  @media(min-width:900px){
+    .a3wrap{display:flex;gap:12px;align-items:flex-start}
+    .page{flex:1;margin-bottom:0}
+  }
+
   .sec{margin-bottom:10px}
   .sec .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;
     color:#255551;margin-bottom:7px}
@@ -47,12 +70,25 @@
   .item.active{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(55,165,149,.25)}
   .item .no{font-size:12px;color:var(--sub);min-width:20px;text-align:center;font-weight:700}
   .item .o{flex:1;border:1px solid #d7e6e2;background:#fff;border-radius:7px;padding:6px 0;font-size:13px;
-    cursor:pointer;color:#3d5a56;font-weight:600}
+    cursor:pointer;color:#3d5a56;font-weight:600;font-family:inherit;min-width:30px}
   .item .o.sel{background:var(--acc);border-color:var(--acc);color:#fff}
   .item .o.right{background:#e6f6ef;border-color:#25a97a;color:#127a52}
   .item .o.wrong{background:#fdecea;border-color:#d35b4d;color:#a8342a}
   .item input.tx{width:100%;font-size:13px;padding:6px 8px;border-radius:7px}
   .item input.sc{width:100%;font-size:13px;padding:6px 8px;border-radius:7px}
+
+  /* 作文批改 */
+  .bandrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .bandrow button{border:1.5px solid var(--line);background:#fff;color:#3d5a56;border-radius:9px;
+    padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .bandrow button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+  .dedrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .dedrow .dl{font-size:12px;color:var(--sub);font-weight:700}
+  .dedrow button{border:1.5px solid #e3d2c0;background:#fffdf8;color:#8a6508;border-radius:99px;
+    padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .dedrow button.on{background:#8a6508;border-color:#8a6508;color:#fff}
+  .essaySug{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px;color:#43635f}
+  .essaySug b{font-size:22px;color:var(--acc)}
 
   .kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
   .kpi div{background:#f7fbfa;border:1px solid var(--line);border-radius:10px;padding:9px 10px}
@@ -76,9 +112,20 @@
   .srow .tot{font-weight:700;color:var(--acc)}
   .kv{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:#43635f}
   .kv label{display:flex;gap:5px;align-items:center}
-  details{margin-top:6px}
-  summary{cursor:pointer;font-size:13px;color:var(--acc);font-weight:700}
   .warnbox{background:#fff8e6;border:1px solid #f0dca8;color:#7a5a00;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.7;margin-bottom:12px}
+
+  /* 批改单 */
+  #sheetModal{position:fixed;inset:0;background:rgba(10,40,36,.5);z-index:90;display:none;overflow:auto;padding:16px}
+  #sheetModal.on{display:block}
+  .sheetCard{max-width:720px;margin:0 auto 30px;background:#fff;border-radius:14px;padding:20px}
+  .sheetCard h2{font-size:17px;color:var(--acc);text-align:center;letter-spacing:2px}
+  .sheetCard .sinfo{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:#43635f;margin:10px 0;
+    padding-bottom:10px;border-bottom:1.5px solid var(--line)}
+  .sheetCard .stotal{display:flex;align-items:baseline;gap:10px;margin:10px 0}
+  .sheetCard .stotal b{font-size:40px;color:var(--acc)}
+  .sheetCard .stotal span{font-size:13px;color:var(--sub)}
+  .sheetCard table{margin:8px 0}
+  .sheetCard .scmt{background:#f7fbfa;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.8;color:#43635f;margin-top:8px}
 
   /* ================= 手机端 ================= */
   body{-webkit-text-size-adjust:100%}
@@ -101,7 +148,7 @@
     main{padding:10px 10px 92px}
     .box{padding:12px;border-radius:13px;margin-bottom:10px}
     .box h3{font-size:13.5px}
-    .statusbar{padding:9px 11px;font-size:12px;border-radius:11px;margin-bottom:10px}
+    .statusbar{padding:9px 11px;font-size:12px;border-radius:11px;margin-bottom:8px}
     .statusbar b{font-size:18px}
     .sec .hd{font-size:12.5px}
     .items{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
@@ -122,18 +169,30 @@
     .row{gap:7px}
     input,select,textarea{font-size:15px}
     button.btn{min-height:44px;font-size:14px}
+    .headbar{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .sheetCard{padding:14px}
+    .sheetCard .stotal b{font-size:32px}
   }
 
-  @media print{header,nav,.noprint{display:none}}
+  @media print{
+    header,nav,.noprint,.mbar,#toast,.jump{display:none!important}
+    main{padding:0;max-width:none}
+    body{background:#fff;padding-bottom:0}
+    .box,.page{box-shadow:none}
+    body.printing-sheet > *:not(#sheetModal){display:none!important}
+    body.printing-sheet #sheetModal{position:static;background:none;padding:0;display:block!important}
+    body.printing-sheet #sheetModal .sheetCard{max-width:none;border-radius:0;padding:10px}
+    @page{size:A4 portrait;margin:12mm}
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="ttl">英语答题卡 · 阅卷工具</div>
-  <div class="sub">冠县第一学期英语期中考试 · 满分 100 分 · 40 选择 + 10 判断 + 5 单词 + 作文</div>
+  <div class="ttl">英语答题卡 · A3 批改工具</div>
+  <div class="sub">冠县第一学期英语期中考试 · A3 双版答题卡（左版一~六 / 右版七~十一）· 满分 100 分</div>
   <nav>
-    <button id="tabQuiz" class="on" onclick="tab('quiz')">阅卷</button>
+    <button id="tabGrade" class="on" onclick="tab('grade')">批改</button>
     <button id="tabStat" onclick="tab('stat')">统计</button>
     <button id="tabKey" onclick="tab('key')">标准答案</button>
     <button id="tabExp" onclick="tab('exp')">导出 / 名单</button>
@@ -143,28 +202,77 @@
 
 <main>
 
-<!-- ==================== 阅卷 ==================== -->
-<section id="pQuiz" class="panel on">
+<!-- ==================== 批改 ==================== -->
+<section id="pGrade" class="panel on">
   <div class="statusbar">
     <div>当前第 <b id="stuIdx">1</b> / <span id="stuTotal">0</span> 份</div>
-    <div>得分 <b id="liveTotal">0</b> / 100</div>
+    <div>得分 <b id="liveTotal">0</b> / <span id="liveMax">100</span></div>
     <div id="liveWrong" style="font-size:12px;opacity:.9"></div>
   </div>
 
   <div class="box noprint">
-    <div class="row">
-      <input id="inNo" placeholder="学号（可留空）" style="width:130px" enterkeyhint="next">
-      <input id="inName" placeholder="姓名" style="width:130px" enterkeyhint="done">
+    <h3>卷头信息（对应答题卡左上角）</h3>
+    <div class="headbar">
+      <label>考号<input id="inNo" placeholder="准考证号" inputmode="numeric" enterkeyhint="next"></label>
+      <label>姓名<input id="inName" placeholder="姓名" enterkeyhint="next"></label>
+      <label>班级<input id="inCls" placeholder="如 501"></label>
+      <label>考场<input id="inRoom" placeholder="考场"></label>
+      <label>座位号<input id="inSeat" placeholder="座位号"></label>
+      <div class="absent" id="absentBtn" onclick="toggleAbsent()">缺考</div>
+    </div>
+    <div class="row" style="margin-top:9px">
       <button class="btn" onclick="saveStudent(true)">保存并下一份</button>
       <button class="btn ghost" onclick="saveStudent(false)">只保存</button>
       <button class="btn ghost" onclick="prevStudent()">上一份</button>
       <button class="btn ghost" onclick="nextStudent()">下一份</button>
+      <button class="btn ghost" onclick="openSheetForCurrent()">看批改单</button>
       <button class="btn warn" onclick="clearForm()">清空本题卡</button>
     </div>
-    <div class="hint" style="margin-top:8px">键盘直接打：A/B/C/D/E、T/F；单词题打完按回车跳下一题。已经录过的答案会自动判分并标红。</div>
+    <div class="hint" style="margin-top:8px">键盘直接打：A/B/C/D/E、T/F；单词题打完按回车跳下一题。录过的答案会自动判分：绿＝对，红＝错。</div>
   </div>
 
-  <div id="quizBody"></div>
+  <div class="jump noprint">
+    <button onclick="jumpTo('pgL')">左版 一~六</button>
+    <button onclick="jumpTo('pgR')">右版 七~十一</button>
+    <button onclick="jumpTo('essayBox')">作文</button>
+  </div>
+
+  <div class="a3wrap">
+    <div class="page" id="pgL">
+      <div class="ph">第 1 版（A3 左页）</div>
+      <div class="ps">听录音选单词 / 选图片 / 判断 / 答语 / 对话 / 单项选择</div>
+      <div id="quizL"></div>
+    </div>
+    <div class="page" id="pgR">
+      <div class="ph">第 2 版（A3 右页）</div>
+      <div class="ps">补全单词 / 完形填空 / 补全对话 / 阅读判断 / 阅读选择</div>
+      <div id="quizR"></div>
+    </div>
+  </div>
+
+  <div class="box" id="essayBox">
+    <h3>十一、书面表达（10 分 · 主观题）</h3>
+    <div class="bandrow" id="bandRow">
+      <button data-b="9">一档 9-10</button>
+      <button data-b="7">二档 7-8</button>
+      <button data-b="5">三档 5-6</button>
+      <button data-b="3">四档 3-4</button>
+      <button data-b="0">五档 0-2</button>
+    </div>
+    <div class="dedrow" id="dedRow">
+      <span class="dl">扣分点（每个 -1）：</span>
+      <button data-d="漏要点">漏要点</button>
+      <button data-d="字数不足">字数不足</button>
+      <button data-d="拼写错误">拼写错误</button>
+      <button data-d="时态错误">时态错误</button>
+      <button data-d="书写不规范">书写不规范</button>
+    </div>
+    <div class="essaySug">建议分 <b id="essaySug">—</b>
+      <span class="hint">点档位和扣分点后自动填入，也可以直接改下面的分数。</span>
+    </div>
+    <div id="essayInput"></div>
+    <textarea id="essayCmt" rows="2" style="width:100%;margin-top:8px" placeholder="评语（可留空，会写进批改单）"></textarea>
+  </div>
 
   <div class="box noprint">
     <div class="row">
@@ -179,6 +287,7 @@
   <div class="box">
     <h3>班级总览</h3>
     <div class="kpi" id="kpiBox"></div>
+    <div class="hint" id="absentTip" style="margin-top:6px"></div>
   </div>
   <div class="box">
     <h3>分数段分布</h3>
@@ -193,7 +302,7 @@
     <div id="topWrong" class="hint"></div>
   </div>
   <div class="box">
-    <h3>学生成绩明细</h3>
+    <h3>学生成绩明细（点开看批改单）</h3>
     <div class="list" id="scoreList"></div>
   </div>
 </section>
@@ -201,7 +310,7 @@
 <!-- ==================== 标准答案 ==================== -->
 <section id="pKey" class="panel">
   <div class="warnbox">
-    先把标准答案填好，再开始阅卷。选项题只能用给定字母；单词题可写多个可接受答案，用「|」隔开，例如 <b>apple|apples</b>；不区分大小写和空格。
+    先把标准答案填好，再开始批改。选项题只能用给定字母；单词题可写多个可接受答案，用「|」隔开，例如 <b>apple|apples</b>；不区分大小写和空格。
   </div>
   <div class="box">
     <div class="row" style="margin-bottom:10px">
@@ -223,11 +332,11 @@
       <button class="btn ghost" onclick="copySummary()">复制班级汇总文字</button>
       <button class="btn warn" onclick="clearAll()">清空全部数据</button>
     </div>
-    <div class="hint" style="margin-top:8px">数据只保存在本机浏览器里。换电脑/换浏览器请先导出 CSV。</div>
+    <div class="hint" style="margin-top:8px">数据只保存在本机浏览器里。换手机/换浏览器请先导出 CSV。</div>
   </div>
   <div class="box">
     <h3>导入学生名单（可选）</h3>
-    <div class="hint" style="margin-bottom:8px">每行一个学生，格式：<b>学号 姓名</b> 或直接写 <b>姓名</b>。导入后按名单顺序阅卷，不怕漏人。</div>
+    <div class="hint" style="margin-bottom:8px">每行一个学生，格式：<b>考号 姓名</b> 或直接写 <b>姓名</b>。导入后按名单顺序批改，不怕漏人。</div>
     <textarea id="rosterTa" rows="5" style="width:100%" placeholder="01 张三&#10;02 李四&#10;03 王五"></textarea>
     <div class="row" style="margin-top:8px">
       <button class="btn" onclick="importRoster()">导入名单</button>
@@ -242,25 +351,28 @@
   <div class="box">
     <h3>三步上手</h3>
     <div class="hint">
-      ① 打开「标准答案」，按答题卡顺序填答案（也可以先录一份满分的正确答卷，点「把当前这份答案设为标准答案」）。<br>
-      ② 打开「阅卷」，输入学号姓名，按卷面点选项或直接敲键盘，录完点「保存并下一份」。<br>
-      ③ 全部录完后到「统计」看平均分、分数段、逐题正确率、易错题排行；到「导出」下载 CSV 交差。
+      ① 「标准答案」里按答题卡填答案（也可以先录一份满分答卷，点「把当前这份答案设为标准答案」）。<br>
+      ② 「批改」里填卷头（考号/姓名/班级/考场/座位号），按 A3 版面点选项或敲键盘，录完点「保存并下一份」；缺考卷直接点「缺考」再保存。<br>
+      ③ 作文在页面底部按档位打分、选扣分点、写一句评语；录完点「看批改单」预览，可打印。<br>
+      ④ 全部录完到「统计」看班级分析和易错题；「导出」下载 CSV 交差。
     </div>
   </div>
   <div class="box">
-    <h3>本卷结构（按你给的答题卡）</h3>
+    <h3>A3 卷面与工具的对应关系</h3>
     <table>
-      <thead><tr><th class="l">大题</th><th>题数</th><th>每题</th><th>小计</th><th class="l">作答方式</th></tr></thead>
+      <thead><tr><th class="l">A3 版面</th><th class="l">大题</th><th>题数</th><th>每题</th><th>小计</th></tr></thead>
       <tbody id="structBody"></tbody>
     </table>
-    <div class="hint" style="margin-top:8px">合计 <b>100 分</b>。若你的卷面分值与这里不一致，在「标准答案 → 改每题分值」里调整即可。</div>
+    <div class="hint" style="margin-top:8px">
+      答题卡是 <b>A3 横向一张纸</b>：左页是卷头 + 第一~六大题，右页是第七~十一大题。工具里的「第 1 版 / 第 2 版」和纸面一一对应——录左页时只看纸的左半边，录右页时只看右半边，不用来回找题。合计 <b>100 分</b>；若卷面分值不同，「标准答案 → 改每题分值」里可调。
+    </div>
   </div>
   <div class="box">
     <h3>手机上怎么用</h3>
     <div class="hint">
       手机浏览器打开 <b>tigeraaa165546.github.io/yingyu-yuejuan</b>（或扫二维码卡片）。<br>
-      · 底部有固定操作栏：上一份 / 保存并下一份 / 清空，单手就能点。<br>
-      · 选项按钮已放大到手指可点，一屏两列，不用来回缩放。<br>
+      · 底部固定操作栏：上一份 / 保存并下一份 / 清空，单手能点。<br>
+      · 手机竖屏时左版、右版上下排列，顶部有「左版 / 右版 / 作文」快速跳转；平板横屏或电脑上自动变成左右并排，跟 A3 纸一样。<br>
       · iPhone 可用 Safari「分享 → 添加到主屏幕」，用起来跟 App 一样。<br>
       · 手机和电脑各存各的数据，跨设备请用导出的 CSV 汇总。
     </div>
@@ -268,39 +380,44 @@
   <div class="box">
     <h3>使用提示</h3>
     <div class="hint">
-      · 作文是主观题，直接输 0–10 的分数，不参与自动比对。<br>
+      · 作文按五档打分，扣分点每个减 1 分，建议分可手动改。<br>
       · 补全单词判分不区分大小写；写多个正确答案用 | 分隔。<br>
       · 录错了随时点回那一题重选，会实时重算。<br>
-      · 数据存在本机浏览器，清浏览器缓存会丢，记得导 CSV。
+      · 数据存在本机浏览器，清缓存会丢，记得导 CSV。
     </div>
   </div>
 </section>
 
 </main>
 
-<div class="mbar">
+<div class="mbar noprint">
   <button class="ghost" onclick="prevStudent()">上一份</button>
   <button onclick="saveStudent(true)">保存并下一份</button>
   <button class="ghost" onclick="clearForm()">清空</button>
 </div>
 <div id="toast"></div>
 
+<div id="sheetModal" onclick="if(event.target===this)closeSheet()">
+  <div class="sheetCard" id="sheetCard"></div>
+</div>
+
 <script>
-/* ===================== 卷面结构 ===================== */
+/* ===================== 卷面结构（A3 双版） ===================== */
 const SECS = [
-  {id:"s1",  short:"一", t:"听录音，选单词",      n:5, per:1,  opts:["A","B","C"],       start:1},
-  {id:"s2",  short:"二", t:"听录音，选图片",      n:5, per:1,  opts:["A","B","C","D","E"],start:1},
-  {id:"s3",  short:"三", t:"听录音，判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1},
-  {id:"s4",  short:"四", t:"听录音，选答语",      n:5, per:2,  opts:["A","B","C"],       start:1},
-  {id:"s5",  short:"五", t:"听对话，选答案",      n:5, per:2,  opts:["A","B","C"],       start:1},
-  {id:"s6",  short:"六", t:"单项选择",            n:5, per:1,  opts:["A","B","C"],       start:1},
-  {id:"s7",  short:"七", t:"补全单词",            n:5, per:2,  opts:["TEXT"],            start:21},
-  {id:"s8",  short:"八", t:"完形填空",            n:5, per:1,  opts:["A","B","C"],       start:1},
-  {id:"s9",  short:"九", t:"补全对话",            n:5, per:2,  opts:["A","B","C","D","E"],start:1},
-  {id:"s10", short:"十(一)", t:"阅读判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1},
-  {id:"s11", short:"十(二)", t:"阅读选择",         n:5, per:2,  opts:["A","B","C"],       start:1},
-  {id:"s12", short:"十一", t:"书面表达（主观）",   n:1, per:10, opts:["SCORE"],           start:1}
+  {id:"s1",  short:"一", t:"听录音，选单词",      n:5, per:1,  opts:["A","B","C"],       start:1, page:"L"},
+  {id:"s2",  short:"二", t:"听录音，选图片",      n:5, per:1,  opts:["A","B","C","D","E"],start:1, page:"L"},
+  {id:"s3",  short:"三", t:"听录音，判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1, page:"L"},
+  {id:"s4",  short:"四", t:"听录音，选答语",      n:5, per:2,  opts:["A","B","C"],       start:1, page:"L"},
+  {id:"s5",  short:"五", t:"听对话，选答案",      n:5, per:2,  opts:["A","B","C"],       start:1, page:"L"},
+  {id:"s6",  short:"六", t:"单项选择",            n:5, per:1,  opts:["A","B","C"],       start:1, page:"L"},
+  {id:"s7",  short:"七", t:"补全单词",            n:5, per:2,  opts:["TEXT"],            start:21, page:"R"},
+  {id:"s8",  short:"八", t:"完形填空",            n:5, per:1,  opts:["A","B","C"],       start:1, page:"R"},
+  {id:"s9",  short:"九", t:"补全对话",            n:5, per:2,  opts:["A","B","C","D","E"],start:1, page:"R"},
+  {id:"s10", short:"十(一)", t:"阅读判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1, page:"R"},
+  {id:"s11", short:"十(二)", t:"阅读选择",         n:5, per:2,  opts:["A","B","C"],       start:1, page:"R"},
+  {id:"s12", short:"十一", t:"书面表达（主观）",   n:1, per:10, opts:["SCORE"],           start:1, page:"E"}
 ];
+const BAND_LABEL = {9:"一档",7:"二档",5:"三档",3:"四档",0:"五档"};
 
 const LS = "ywyd_yingyu_bdb_v1";
 const state = {
@@ -317,6 +434,7 @@ const isScore = s => s.opts[0] === "SCORE";
 const isText  = s => s.opts[0] === "TEXT";
 const secOf = id => SECS.find(s => id.startsWith(s.id + "-"));
 const perOf = id => { const s = secOf(id); return (state.per[s.id]!==undefined ? state.per[s.id] : s.per); };
+const esc = t => String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 
 function norm(v){
   return String(v==null?"":v).trim().toLowerCase()
@@ -363,50 +481,52 @@ function gradeOne(ans){
 }
 function maxTotal(){ return SECS.reduce((a,s)=>a + s.n * (state.per[s.id]!==undefined?state.per[s.id]:s.per), 0); }
 
-/* ===================== 渲染 · 阅卷 ===================== */
+/* ===================== 渲染 · 批改 ===================== */
+function itemHtml(s, i){
+  const id = s.id + "-" + (i+1);
+  const no = s.start + i;
+  let h = '<div class="item" id="it_' + id + '" data-id="' + id + '"><span class="no">' + no + '</span>';
+  if(isText(s)){
+    h += '<input class="tx" data-id="' + id + '" placeholder="拼写" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">';
+  }else if(isScore(s)){
+    h += '<input class="sc" type="number" inputmode="numeric" min="0" max="' + perOf(id) + '" step="1" data-id="' + id + '" placeholder="0-' + perOf(id) + '" enterkeyhint="done">';
+  }else{
+    s.opts.forEach(o => { h += '<button class="o" data-id="' + id + '" data-v="' + o + '">' + o + '</button>'; });
+  }
+  return h + '</div>';
+}
+function secHtml(s){
+  if(s.page === "E") return "";
+  const per = perOf(s.id + "-1");
+  let h = '<div class="sec"><div class="hd"><div>' + s.short + '、' + s.t +
+          '</div><span>' + s.n + ' 题 × ' + per + ' 分 = ' + (s.n*per) + ' 分</span></div><div class="items">';
+  for(let i=0;i<s.n;i++) h += itemHtml(s, i);
+  return h + '</div></div>';
+}
 function renderQuiz(){
-  const body = $("quizBody");
-  let html = "";
-  SECS.forEach(s => {
-    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
-    html += '<div class="box sec"><div class="hd"><div>' + s.short + '、' + s.t +
-            '</div><span>' + s.n + ' 题 × ' + per + ' 分 = ' + (s.n*per) + ' 分</span></div><div class="items">';
-    for(let i=0;i<s.n;i++){
-      const id = s.id + "-" + (i+1);
-      const no = s.start + i;
-      html += '<div class="item" id="it_' + id + '" data-id="' + id + '"><span class="no">' + no + '</span>';
-      if(isText(s)){
-        html += '<input class="tx" data-id="' + id + '" placeholder="拼写" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">';
-      }else if(isScore(s)){
-        html += '<input class="sc" type="number" inputmode="numeric" min="0" max="' + per + '" step="1" data-id="' + id + '" placeholder="0-' + per + '" enterkeyhint="done">';
-      }else{
-        s.opts.forEach(o => {
-          html += '<button class="o" data-id="' + id + '" data-v="' + o + '">' + o + '</button>';
-        });
-      }
-      html += '</div>';
-    }
-    html += '</div></div>';
-  });
-  body.innerHTML = html;
+  $("quizL").innerHTML = SECS.filter(s=>s.page==="L").map(secHtml).join("");
+  $("quizR").innerHTML = SECS.filter(s=>s.page==="R").map(secHtml).join("");
+  const es = SECS[11];
+  const emax = perOf(es.id + "-1");
+  $("essayInput").innerHTML = '<div class="item" style="max-width:220px" id="it_s12-1" data-id="s12-1"><span class="no">分</span>' +
+    '<input class="sc" type="number" inputmode="numeric" min="0" max="' + emax + '" step="1" data-id="s12-1" placeholder="0-' + emax + '" enterkeyhint="done"></div>';
 
-  // 绑定
-  body.querySelectorAll("button.o").forEach(b=>{
+  document.querySelectorAll("#pGrade button.o").forEach(b=>{
     b.onclick = () => { setAns(b.dataset.id, b.dataset.v); setActive(b.dataset.id); refreshMarks(); advance(b.dataset.id); };
   });
-  body.querySelectorAll("input.tx").forEach(inp=>{
+  document.querySelectorAll("#pGrade input.tx").forEach(inp=>{
     inp.oninput = () => { setAns(inp.dataset.id, inp.value); refreshMarks(); };
     inp.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); advance(inp.dataset.id); } };
     inp.onfocus = () => setActive(inp.dataset.id, false);
   });
-  body.querySelectorAll("input.sc").forEach(inp=>{
-    inp.oninput = () => { setAns(inp.dataset.id, inp.value); refreshMarks(); };
+  document.querySelectorAll("#pGrade input.sc").forEach(inp=>{
+    inp.oninput = () => { setAns(inp.dataset.id, inp.value); refreshMarks(); updateEssaySug(); };
     inp.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); inp.blur(); } };
     inp.onfocus = () => setActive(inp.dataset.id, false);
   });
 }
 
-let cur = {};   // 当前正在录入的答卷答案
+let cur = {};   // 当前答卷（含 _band/_ded/_cmt 作文批改数据）
 function setAns(id, v){
   if(v === "" || v === null || v === undefined) delete cur[id];
   else cur[id] = String(v);
@@ -442,12 +562,13 @@ function advance(id){
   const el = $("it_" + nx);
   const inp = el && el.querySelector("input");
   if(inp) inp.focus();
+  else if(nx === "s12-1") jumpTo("essayBox");
 }
 function refreshMarks(){
   const g = gradeOne(cur);
   $("liveTotal").textContent = g.total;
+  $("liveMax").textContent = maxTotal();
   $("liveWrong").textContent = g.objTotal ? ("客观题 " + g.objRight + " / " + g.objTotal) : "标准答案未填";
-  // 标出对错
   SECS.forEach(s=>{
     if(isScore(s)) return;
     for(let i=0;i<s.n;i++){
@@ -462,22 +583,89 @@ function refreshMarks(){
         if(String(v) === b.dataset.v) b.classList.add(keyMatch(v,k) ? "right" : "wrong");
       });
       const inp = el.querySelector("input.tx");
-      if(inp){
-        inp.style.borderColor = (!k || !v) ? "" : (keyMatch(v,k) ? "#25a97a" : "#d35b4d");
-      }
+      if(inp) inp.style.borderColor = (!k || !v) ? "" : (keyMatch(v,k) ? "#25a97a" : "#d35b4d");
     }
   });
 }
+function jumpTo(id){
+  const el = $(id);
+  if(el) el.scrollIntoView({block:"start", behavior:"smooth"});
+}
+
+/* ===================== 作文批改 ===================== */
+function essayBase(){ return cur._band !== undefined ? cur._band : null; }
+function essayDed(){ return Array.isArray(cur._ded) ? cur._ded.length : 0; }
+function essaySuggest(){
+  if(essayBase() === null) return null;
+  return Math.max(0, essayBase() - essayDed());
+}
+function renderEssayState(){
+  document.querySelectorAll("#bandRow button").forEach(b=>{
+    b.classList.toggle("on", cur._band !== undefined && parseInt(b.dataset.b,10) === cur._band);
+  });
+  document.querySelectorAll("#dedRow button").forEach(b=>{
+    b.classList.toggle("on", Array.isArray(cur._ded) && cur._ded.includes(b.dataset.d));
+  });
+  const sug = essaySuggest();
+  $("essaySug").textContent = sug === null ? "—" : sug;
+  if(sug !== null){
+    const inp = $("it_s12-1").querySelector("input");
+    if(inp && inp.value === "") inp.value = sug;
+    if(inp && !inp.dataset.touched) inp.value = sug;
+    setAns("s12-1", inp.value);
+  }
+}
+function updateEssaySug(){
+  const sug = essaySuggest();
+  $("essaySug").textContent = sug === null ? "—" : sug;
+}
+function initEssay(){
+  document.querySelectorAll("#bandRow button").forEach(b=>{
+    b.onclick = () => { cur._band = parseInt(b.dataset.b,10); renderEssayState(); };
+  });
+  document.querySelectorAll("#dedRow button").forEach(b=>{
+    b.onclick = () => {
+      if(!Array.isArray(cur._ded)) cur._ded = [];
+      const d = b.dataset.d;
+      const i = cur._ded.indexOf(d);
+      if(i >= 0) cur._ded.splice(i,1); else cur._ded.push(d);
+      renderEssayState();
+    };
+  });
+  const inp = $("it_s12-1").querySelector("input");
+  if(inp) inp.oninput = () => { inp.dataset.touched = "1"; setAns("s12-1", inp.value); refreshMarks(); };
+}
 
 /* ===================== 学生存取 ===================== */
+function headInfo(){
+  return {
+    no: $("inNo").value.trim(), name: $("inName").value.trim(),
+    cls: $("inCls").value.trim(), room: $("inRoom").value.trim(),
+    seat: $("inSeat").value.trim(), absent: state._absent === true
+  };
+}
+function loadHead(h){
+  $("inNo").value = h.no || "";
+  $("inName").value = h.name || "";
+  $("inCls").value = h.cls || "";
+  $("inRoom").value = h.room || "";
+  $("inSeat").value = h.seat || "";
+  state._absent = h.absent === true;
+  $("absentBtn").classList.toggle("on", state._absent);
+}
+function toggleAbsent(){
+  state._absent = !state._absent;
+  $("absentBtn").classList.toggle("on", state._absent);
+  if(state._absent) toast("已标记缺考：保存后不计入统计");
+}
 function loadStudent(i){
   const s = state.students[i];
   if(!s) return;
   cur = Object.assign({}, s.ans || {});
-  $("inNo").value = s.no || "";
-  $("inName").value = s.name || "";
+  cur._band = (s.essay && s.essay.band !== undefined) ? s.essay.band : undefined;
+  cur._ded  = (s.essay && s.essay.ded) ? s.essay.ded.slice() : undefined;
+  loadHead(s);
   state.idx = i;
-  // 回填界面
   allIds().forEach(id=>{
     const el = $("it_" + id);
     if(!el) return;
@@ -485,9 +673,11 @@ function loadStudent(i){
       el.querySelectorAll("button.o").forEach(b=>b.classList.toggle("sel", String(cur[id]) === b.dataset.v));
     }else{
       const inp = el.querySelector("input");
-      if(inp) inp.value = cur[id] !== undefined ? cur[id] : "";
+      if(inp){ inp.value = cur[id] !== undefined ? cur[id] : ""; inp.dataset.touched = ""; }
     }
   });
+  $("essayCmt").value = (s.essay && s.essay.comment) || "";
+  renderEssayState();
   refreshMarks();
   refreshStuBar();
 }
@@ -496,51 +686,138 @@ function refreshStuBar(){
   $("stuTotal").textContent = state.students.length;
 }
 function saveStudent(autoNext){
-  const no = $("inNo").value.trim(), name = $("inName").value.trim();
-  if(!name && !no){ alert("至少填个姓名或学号，不然分不清是谁的卷子。"); return; }
+  const h = headInfo();
+  if(!h.absent && !h.name && !h.no){ alert("至少填个姓名或考号，不然分不清是谁的卷子。"); return; }
   const g = gradeOne(cur);
-  const rec = {no, name, ans:Object.assign({}, cur), scores:g.scores, total:g.total,
-               objTotal:g.objTotal, objRight:g.objRight, wrong:g.wrong, pending:false};
-  // 同一学号/姓名就覆盖，否则新增
+  const rec = Object.assign({}, h, {
+    ans:Object.assign({}, cur), scores:g.scores, total:h.absent ? 0 : g.total,
+    objTotal:g.objTotal, objRight:g.objRight, wrong:g.wrong,
+    essay:{band:cur._band, ded:(cur._ded||[]).slice(), comment:$("essayCmt").value.trim()},
+    pending:false
+  });
   let hit = -1;
-  if(no) hit = state.students.findIndex(s=>s.no && s.no === no);
-  if(hit < 0 && name) hit = state.students.findIndex(s=>!s.no && s.name === name);
+  if(h.no) hit = state.students.findIndex(s=>s.no && s.no === h.no);
+  if(hit < 0 && h.name) hit = state.students.findIndex(s=>!s.no && s.name === h.name);
   if(hit >= 0) state.students[hit] = rec; else state.students.push(rec);
   persist();
-  toast("已保存 " + (name || no) + " · " + g.total + " 分");
-  $("saveTip").textContent = "已保存：" + (name || no) + "  " + g.total + " 分";
+  toast(h.absent ? "已登记缺考：" + (h.name || h.no) : "已保存 " + (h.name || h.no) + " · " + (h.absent ? "缺考" : g.total + " 分"));
+  $("saveTip").textContent = "已保存：" + (h.name || h.no) + (h.absent ? "（缺考）" : "  " + g.total + " 分");
   renderStats();
   if(autoNext){
     if(hit >= 0){ loadStudent(Math.min(hit + 1, state.students.length - 1)); }
-    else { clearForm(true); clearName(); state.idx = state.students.length; prefillRoster(); refreshStuBar(); }
+    else {
+      const keep = {cls:h.cls, room:h.room, seat:h.seat};
+      clearForm(true);
+      $("inNo").value = ""; $("inName").value = "";
+      $("inCls").value = keep.cls; $("inRoom").value = keep.room; $("inSeat").value = keep.seat;
+      state._absent = false; $("absentBtn").classList.remove("on");
+      state.idx = state.students.length; prefillRoster(); refreshStuBar();
+    }
   }
 }
 function prevStudent(){ if(state.idx > 0) loadStudent(state.idx - 1); }
 function nextStudent(){
   if(state.idx < state.students.length - 1) loadStudent(state.idx + 1);
-  else { clearForm(true); clearName(); state.idx = state.students.length; prefillRoster(); refreshStuBar(); }
+  else {
+    const h = headInfo();
+    clearForm(true);
+    $("inNo").value = ""; $("inName").value = "";
+    $("inCls").value = h.cls; $("inRoom").value = h.room; $("inSeat").value = h.seat;
+    state._absent = false; $("absentBtn").classList.remove("on");
+    state.idx = state.students.length; prefillRoster(); refreshStuBar();
+  }
 }
-function clearName(){ $("inNo").value = ""; $("inName").value = ""; }
 function prefillRoster(){
   const r = state.roster[state.students.filter(s=>!s.pending).length];
   if(r){ $("inNo").value = r.no || ""; $("inName").value = r.name || ""; }
 }
 function clearForm(silent){
-  if(!silent && !confirm("清空当前这份答题卡？（已保存的记录不受影响）")) return;
+  if(!silent && !confirm("清空当前这张答题卡？（已保存的记录不受影响）")) return;
   cur = {};
   allIds().forEach(id=>{
     const el = $("it_" + id); if(!el) return;
     el.querySelectorAll("button.o").forEach(b=>b.classList.remove("sel","right","wrong"));
     const inp = el.querySelector("input");
-    if(inp){ inp.value = ""; inp.style.borderColor = ""; }
+    if(inp){ inp.value = ""; inp.style.borderColor = ""; delete inp.dataset.touched; }
   });
+  document.querySelectorAll("#bandRow button,#dedRow button").forEach(b=>b.classList.remove("on"));
+  $("essaySug").textContent = "—";
+  $("essayCmt").value = "";
   if(!silent){ $("inNo").value = ""; $("inName").value = ""; }
   refreshMarks();
 }
 
+/* ===================== 批改单 ===================== */
+function sheetHtml(rec, live){
+  if(rec.pending){
+    return '<h2>英语期中考试 · 批改单</h2><div class="stotal"><b>—</b><span>这份卷还没批，点明细里的学生后再选「修改这份卷」继续。</span></div>';
+  }
+  const g = live || {scores:rec.scores, total:rec.total, wrong:rec.wrong||[], objRight:rec.objRight, objTotal:rec.objTotal};
+  const h = rec;
+  const rows = SECS.map(s=>{
+    const per = s.n * perOf(s.id + "-1");
+    const got = (g.scores && g.scores[s.id] !== undefined) ? g.scores[s.id] : 0;
+    return "<tr><td class='l'>" + s.short + "、" + s.t + "</td><td>" + got + "</td><td>" + per + "</td></tr>";
+  }).join("");
+  const wrongTxt = g.wrong && g.wrong.length ? g.wrong.join("、") : "客观题全对";
+  const essay = rec.essay || {};
+  const cmt = essay.comment || "";
+  const bandTxt = essay.band !== undefined && essay.band !== null ? (BAND_LABEL[essay.band] || "") : "";
+  return '<h2>英语期中考试 · 批改单</h2>' +
+    '<div class="sinfo"><span>姓名：<b>' + esc(h.name || "—") + '</b></span>' +
+    '<span>考号：' + esc(h.no || "—") + '</span><span>班级：' + esc(h.cls || "—") + '</span>' +
+    '<span>考场：' + esc(h.room || "—") + '</span><span>座位：' + esc(h.seat || "—") + '</span></div>' +
+    '<div class="stotal"><b>' + (h.absent ? "缺考" : g.total) + '</b><span>' + (h.absent ? "该卷缺考，不计入统计" : "/ " + maxTotal() + " 分") +
+    '</span><span style="margin-left:auto">客观题 ' + (g.objRight||0) + "/" + (g.objTotal||0) + '</span></div>' +
+    '<table><thead><tr><th class="l">大题</th><th>得分</th><th>满分</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div style="font-size:13px;color:#a8342a;margin-top:6px">错题：' + esc(h.absent ? "—" : wrongTxt) + '</div>' +
+    (bandTxt || cmt ? '<div class="scmt"><b>作文（十一）：</b>' + bandTxt + (bandTxt && cmt ? " · " : "") + esc(cmt) + '</div>' : '');
+}
+function openSheet(i){
+  const rec = state.students[i];
+  if(!rec) return;
+  $("sheetCard").innerHTML = sheetHtml(rec) +
+    '<div class="row noprint" style="margin-top:14px">' +
+    '<button class="btn" onclick="printSheet()">打印批改单</button>' +
+    '<button class="btn ghost" onclick="copySheet(' + i + ')">复制批改文字</button>' +
+    '<button class="btn ghost" onclick="editStudent(' + i + ')">修改这份卷</button>' +
+    '<button class="btn warn" onclick="closeSheet()">关闭</button></div>';
+  $("sheetModal").classList.add("on");
+}
+function openSheetForCurrent(){
+  const h = headInfo();
+  const g = gradeOne(cur);
+  const rec = Object.assign({}, h, {scores:g.scores, total:g.total, wrong:g.wrong, objRight:g.objRight, objTotal:g.objTotal,
+    essay:{band:cur._band, ded:(cur._ded||[]).slice(), comment:$("essayCmt").value.trim()}});
+  $("sheetCard").innerHTML = sheetHtml(rec, g) +
+    '<div class="row noprint" style="margin-top:14px">' +
+    '<button class="btn" onclick="printSheet()">打印批改单</button>' +
+    '<button class="btn warn" onclick="closeSheet()">关闭</button></div>';
+  $("sheetModal").classList.add("on");
+}
+function closeSheet(){ $("sheetModal").classList.remove("on"); document.body.classList.remove("printing-sheet"); }
+function printSheet(){
+  document.body.classList.add("printing-sheet");
+  window.print();
+  setTimeout(()=>document.body.classList.remove("printing-sheet"), 500);
+}
+function copySheet(i){
+  const rec = state.students[i];
+  const g = {scores:rec.scores, total:rec.total, wrong:rec.wrong||[]};
+  const essay = rec.essay || {};
+  const txt = rec.name + (rec.no ? "（考号" + rec.no + "）" : "") + "：" +
+    (rec.absent ? "缺考" : "总分 " + rec.total + " / " + maxTotal()) +
+    (rec.absent ? "" : "；错题：" + (g.wrong.length ? g.wrong.join("、") : "客观题全对")) +
+    (essay.comment ? "；作文：" + (essay.band !== undefined ? (BAND_LABEL[essay.band] || "") + " " : "") + essay.comment : "");
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast("批改文字已复制"));
+  else toast(txt);
+}
+function editStudent(i){ closeSheet(); tab("grade"); loadStudent(i); }
+function gotoStudent(i){ tab("grade"); loadStudent(i); }
+
 /* ===================== 统计 ===================== */
 function stats(){
-  const ss = state.students.filter(s=>!s.pending);
+  const ss = state.students.filter(s=>!s.pending && !s.absent);
   const n = ss.length;
   const totals = ss.map(s=>s.total);
   const sum = totals.reduce((a,b)=>a+b,0);
@@ -566,13 +843,14 @@ function stats(){
 }
 function renderStats(){
   const st = stats();
+  const absentN = state.students.filter(s=>s.absent).length;
   $("kpiBox").innerHTML =
-    kpi(st.n, "已阅份数") + kpi(st.n ? r2(st.avg) : 0, "平均分") +
+    kpi(st.n, "已批份数") + kpi(st.n ? r2(st.avg) : 0, "平均分") +
     kpi(st.top, "最高分") + kpi(st.min, "最低分") +
     kpi(st.n ? Math.round(st.pass/st.n*100) + "%" : "—", "及格率") +
     kpi(st.n ? Math.round(st.good/st.n*100) + "%" : "—", "优秀率");
+  $("absentTip").textContent = absentN ? "另有 " + absentN + " 人缺考，未计入以上统计。" : "";
 
-  // 分数段
   const edges = [[0,60],[60,70],[70,80],[80,90],[90,101]];
   const labels = ["0-59","60-69","70-79","80-89","90-100"];
   const counts = edges.map(([a,b]) => st.totals.filter(t=>t>=a && t<b).length);
@@ -581,7 +859,6 @@ function renderStats(){
     '<div class="brow"><div class="lb">' + labels[i] + '</div><div class="barwrap"><div class="bar" style="width:' +
     (c/maxC*100) + '%"></div></div><div style="width:56px">' + c + ' 人</div></div>').join("");
 
-  // 逐题正确率
   let cells = "";
   SECS.forEach(s=>{
     if(isScore(s)) return;
@@ -600,7 +877,6 @@ function renderStats(){
   });
   $("itemStat").innerHTML = st.n ? cells : '<div class="hint">还没有录入成绩。</div>';
 
-  // 易错题
   const arr = allIds().filter(id=>!isScore(secOf(id))).map(id=>{
     const it = st.byItem[id];
     const rate = st.n ? it.right/st.n : 1;
@@ -612,40 +888,43 @@ function renderStats(){
       Math.round(x.rate*100) + '%　<span style="color:#6b807d">' + d + '</span></div>';
   }).join("") : "—";
 
-  // 学生明细
-  $("scoreList").innerHTML = state.students.length ? state.students.map((s,i)=>
-    '<div class="srow" onclick="gotoStudent(' + i + ')"><div>' + (i+1) + '. ' +
-      (s.name || "（无名）") + ' <span style="color:#8aa09c">' + (s.no || "") + '</span></div>' +
-      '<div style="color:#6b807d">' + (s.pending ? "未阅" :
-        ('错：' + (s.wrong && s.wrong.length ? s.wrong.join("、") : "全对")).slice(0, 60)) +
-      '</div><div class="tot">' + (s.pending ? "—" : s.total) + '</div></div>').join("")
-    : '<div class="hint">还没有录入成绩。</div>';
+  $("scoreList").innerHTML = state.students.length ? state.students.map((s,i)=>{
+    const state2 = s.pending ? '<span style="color:#8aa09c">未批</span>' :
+      (s.absent ? '<span class="tag r">缺考</span>' :
+      '<span style="color:#6b807d">错：' + (s.wrong && s.wrong.length ? s.wrong.join("、") : "全对") + '</span>');
+    const head = (i+1) + '. ' + (s.name || "（无名）") +
+      (s.cls ? ' <span style="color:#8aa09c">' + esc(s.cls) + '班</span>' : "") +
+      (s.no ? ' <span style="color:#8aa09c">' + esc(s.no) + '</span>' : "");
+    return '<div class="srow" onclick="openSheet(' + i + ')"><div>' + head + '<div>' + state2 + '</div></div>' +
+      '<div class="tot">' + (s.pending || s.absent ? "—" : s.total) + '</div></div>';
+  }).join("") : '<div class="hint">还没有录入成绩。</div>';
 }
 function kpi(v,k){ return '<div><div class="v">' + v + '</div><div class="k">' + k + '</div></div>'; }
-function gotoStudent(i){ tab('quiz'); loadStudent(i); }
 
 /* ===================== 标准答案 ===================== */
 function renderKey(){
   let html = "";
+  const group = {L:"第 1 版（A3 左页）", R:"第 2 版（A3 右页）"};
   SECS.forEach(s=>{
-    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
-    html += '<div class="box"><h3>' + s.short + '、' + s.t + ' <span style="font-weight:500;color:#6b807d;font-size:12px">每题 ' + per + ' 分</span></h3><div class="items">';
-    for(let i=0;i<s.n;i++){
-      const id = s.id + "-" + (i+1);
-      const no = s.start + i;
-      html += '<div class="item"><span class="no">' + no + '</span>';
-      if(isScore(s)){
-        html += '<span class="hint" style="padding:4px 6px">主观题，无需答案</span>';
-      }else if(isText(s)){
-        html += '<input class="tx" data-kid="' + id + '" placeholder="答案，可写 a|b" value="' + (state.key[id]||"").replace(/"/g,"&quot;") + '">';
-      }else{
-        html += '<select data-kid="' + id + '" style="flex:1;font-size:13px;padding:6px 4px"><option value="">—</option>' +
-          s.opts.map(o=>'<option value="' + o + '"' + (state.key[id] === o ? " selected" : "") + '>' + o + '</option>').join("") +
-          '</select>';
+    const per = perOf(s.id + "-1");
+    if(s.page !== "E"){
+      html += '<div class="box"><h3>' + group[s.page] + ' · ' + s.short + '、' + s.t +
+        ' <span style="font-weight:500;color:#6b807d;font-size:12px">每题 ' + per + ' 分</span></h3><div class="items">';
+      for(let i=0;i<s.n;i++){
+        const id = s.id + "-" + (i+1);
+        const no = s.start + i;
+        html += '<div class="item"><span class="no">' + no + '</span>';
+        if(isText(s)){
+          html += '<input class="tx" data-kid="' + id + '" placeholder="答案，可写 a|b" value="' + (state.key[id]||"").replace(/"/g,"&quot;") + '">';
+        }else{
+          html += '<select data-kid="' + id + '" style="flex:1;font-size:13px;padding:6px 4px"><option value="">—</option>' +
+            s.opts.map(o=>'<option value="' + o + '"' + (state.key[id] === o ? " selected" : "") + '>' + o + '</option>').join("") +
+            '</select>';
+        }
+        html += '</div>';
       }
-      html += '</div>';
+      html += '</div></div>';
     }
-    html += '</div></div>';
   });
   $("keyBody").innerHTML = html;
   $("keyBody").querySelectorAll("select,input[data-kid]").forEach(el=>{
@@ -701,26 +980,26 @@ function importRoster(){
     return {no:"", name:parts[0]};
   });
   state.roster = roster;
-  persist();
   $("rosterTip").textContent = "已导入 " + roster.length + " 人。点「下一份」会自动按名单顺序带出姓名。";
-  // 名单里没有成绩的，预填到 students 占位
   roster.forEach(r=>{
     const exists = state.students.some(s => (r.no && s.no === r.no) || (!r.no && s.name === r.name));
     if(!exists) state.students.push({no:r.no, name:r.name, ans:{}, total:0, scores:{}, objTotal:0, objRight:0, wrong:[], pending:true});
   });
-  persist(); renderStuBar(); renderStats();
+  persist(); refreshStuBar(); renderStats();
 }
 function clearRoster(){ state.roster = []; $("rosterTip").textContent = ""; persist(); }
 
 function exportCSV(){
-  const graded = state.students.filter(s=>!s.pending);
-  if(!graded.length){ alert("还没有成绩可导出。"); return; }
-  const head = ["序号","学号","姓名"].concat(SECS.map(s=>s.short+"、"+s.t)).concat(["总分","客观题正确","错题"]);
+  const rows_data = state.students.filter(s=>!s.pending);
+  if(!rows_data.length){ alert("还没有成绩可导出。"); return; }
+  const head = ["序号","考号","姓名","班级","考场","座位号","缺考"]
+    .concat(SECS.map(s=>s.short+"、"+s.t)).concat(["总分","客观题正确","错题","作文评语"]);
   const rows = [head];
-  graded.forEach((s,i)=>{
-    rows.push([i+1, s.no||"", s.name||""]
+  rows_data.forEach((s,i)=>{
+    rows.push([i+1, s.no||"", s.name||"", s.cls||"", s.room||"", s.seat||"", s.absent?"是":""]
       .concat(SECS.map(sec => (s.scores && s.scores[sec.id] !== undefined) ? s.scores[sec.id] : 0))
-      .concat([s.total, (s.objRight||0) + "/" + (s.objTotal||0), (s.wrong||[]).join(" ")]));
+      .concat([s.absent ? "缺考" : s.total, (s.objRight||0) + "/" + (s.objTotal||0),
+               (s.wrong||[]).join(" "), (s.essay && s.essay.comment) || ""]));
   });
   const csv = rows.map(r=>r.map(c=>{
     const v = String(c==null?"":c);
@@ -739,8 +1018,9 @@ function copySummary(){
   const txt = "【冠县第一学期英语期中考试 · 成绩汇总】\n" +
     "参考人数：" + st.n + " 人\n" +
     "平均分：" + r2(st.avg) + "　最高：" + st.top + "　最低：" + st.min + "\n" +
-    "及格率：" + Math.round(st.pass/st.n*100) + "%　优秀率：" + Math.round(st.good/st.n*100) + "%";
-  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert("已复制汇总，可直接粘贴到群里。"));
+    "及格率：" + Math.round(st.pass/st.n*100) + "%　优秀率：" + Math.round(st.good/st.n*100) + "%" +
+    (state.students.some(s=>s.absent) ? "\n（另有缺考 " + state.students.filter(s=>s.absent).length + " 人）" : "");
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast("已复制汇总，可直接粘贴到群里"));
   else alert(txt);
 }
 function clearAll(){
@@ -748,7 +1028,7 @@ function clearAll(){
   if(!confirm("再确认一次：真的清空？")) return;
   state.key = {}; state.per = {}; state.students = []; state.roster = []; state.idx = 0; cur = {};
   localStorage.removeItem(LS);
-  renderQuiz(); renderKey(); renderStats(); renderStuBar(); clearForm(true);
+  renderQuiz(); renderKey(); renderStats(); refreshStuBar(); clearForm(true);
 }
 
 /* ===================== 提示 ===================== */
@@ -778,8 +1058,8 @@ function persistKey(){
 
 /* ===================== Tab ===================== */
 function tab(name){
-  const map = {quiz:"pQuiz", stat:"pStat", key:"pKey", exp:"pExp", help:"pHelp"};
-  const btns = {quiz:"tabQuiz", stat:"tabStat", key:"tabKey", exp:"tabExp", help:"tabHelp"};
+  const map = {grade:"pGrade", stat:"pStat", key:"pKey", exp:"pExp", help:"pHelp"};
+  const btns = {grade:"tabGrade", stat:"tabStat", key:"tabKey", exp:"tabExp", help:"tabHelp"};
   Object.keys(map).forEach(k=>{
     $(map[k]).classList.toggle("on", k === name);
     $(btns[k]).classList.toggle("on", k === name);
@@ -808,7 +1088,6 @@ function bindKeyboard(){
 
 /* ===================== 启动 ===================== */
 function init(){
-  // 恢复
   try{
     const raw = localStorage.getItem(LS);
     if(raw){
@@ -818,14 +1097,14 @@ function init(){
     }
   }catch(e){}
   renderQuiz();
+  initEssay();
   renderKey();
   renderStats();
   refreshStuBar();
   bindKeyboard();
-  // 结构表
   $("structBody").innerHTML = SECS.map(s=>{
-    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
-    return '<tr><td class="l">' + s.short + '、' + s.t + '</td><td>' + s.n + '</td><td>' + per +
+    const per = perOf(s.id + "-1");
+    return '<tr><td class="l">' + (s.page === "L" ? "左页" : "右页") + ' · ' + s.short + '、' + s.t + '</td><td>' + s.n + '</td><td>' + per +
       '</td><td>' + (s.n*per) + '</td><td class="l">' +
       (isScore(s) ? "主观给分" : (isText(s) ? "单词拼写" : s.opts.join(" / "))) + '</td></tr>';
   }).join("");
