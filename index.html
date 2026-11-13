@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>英语答题卡阅卷工具 · 冠县第一学期英语期中考试</title>
+<style>
+  :root{
+    --bg:#f4f7f6; --card:#ffffff; --ink:#1c2b2a; --sub:#6b807d;
+    --acc:#157a6e; --acc2:#37a595; --line:#dbe7e3; --warn:#c0392b; --gold:#b8860b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);padding-bottom:40px}
+  header{background:linear-gradient(100deg,#0f5f57,#1f8d80);color:#fff;padding:14px 18px 0}
+  header .ttl{font-size:17px;font-weight:800;letter-spacing:.5px}
+  header .sub{font-size:12px;opacity:.85;margin-top:3px}
+  nav{display:flex;gap:4px;margin-top:12px}
+  nav button{flex:1;padding:9px 0;border:none;background:rgba(255,255,255,.14);color:#e8f5f2;font-size:14px;
+    border-radius:10px 10px 0 0;cursor:pointer;font-weight:600}
+  nav button.on{background:var(--bg);color:var(--acc)}
+  main{max-width:860px;margin:0 auto;padding:14px 14px 0}
+  .panel{display:none}
+  .panel.on{display:block}
+  .box{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(21,122,110,.07)}
+  .box h3{font-size:14px;color:var(--acc);margin-bottom:10px;letter-spacing:.5px}
+  .hint{font-size:12px;color:var(--sub);line-height:1.7}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input,select,textarea{font-family:inherit;font-size:14px;border:1.5px solid var(--line);border-radius:9px;
+    padding:8px 10px;background:#fff;color:var(--ink);outline:none}
+  input:focus,textarea:focus{border-color:var(--acc2)}
+  button.btn{border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+    background:var(--acc);color:#fff}
+  button.btn.ghost{background:#fff;color:var(--acc);border:1.5px solid var(--acc)}
+  button.btn.warn{background:#fff;color:var(--warn);border:1.5px solid var(--warn)}
+  button.btn:active{transform:scale(.98)}
+
+  .statusbar{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:#0f5f57;color:#fff;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px}
+  .statusbar b{font-size:20px}
+  .sec{margin-bottom:10px}
+  .sec .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;
+    color:#255551;margin-bottom:7px}
+  .sec .hd span{font-weight:500;color:var(--sub);font-size:12px}
+  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:7px}
+  .item{display:flex;align-items:center;gap:5px;background:#f7fbfa;border:1px solid var(--line);
+    border-radius:9px;padding:5px 6px;transition:.12s}
+  .item.active{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(55,165,149,.25)}
+  .item .no{font-size:12px;color:var(--sub);min-width:20px;text-align:center;font-weight:700}
+  .item .o{flex:1;border:1px solid #d7e6e2;background:#fff;border-radius:7px;padding:6px 0;font-size:13px;
+    cursor:pointer;color:#3d5a56;font-weight:600}
+  .item .o.sel{background:var(--acc);border-color:var(--acc);color:#fff}
+  .item .o.right{background:#e6f6ef;border-color:#25a97a;color:#127a52}
+  .item .o.wrong{background:#fdecea;border-color:#d35b4d;color:#a8342a}
+  .item input.tx{width:100%;font-size:13px;padding:6px 8px;border-radius:7px}
+  .item input.sc{width:100%;font-size:13px;padding:6px 8px;border-radius:7px}
+
+  .kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+  .kpi div{background:#f7fbfa;border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  .kpi .v{font-size:19px;font-weight:800;color:var(--acc)}
+  .kpi .k{font-size:11px;color:var(--sub);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:center}
+  th{background:#f1f8f6;color:#376a64;font-weight:700;font-size:12px}
+  td.l,th.l{text-align:left}
+  .bar{height:16px;border-radius:8px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+  .brow{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;color:#43635f}
+  .brow .lb{width:74px;text-align:right;color:var(--sub)}
+  .brow .barwrap{flex:1;background:#eef4f2;border-radius:8px;overflow:hidden}
+  .tag{padding:1px 7px;border-radius:99px;font-size:11px;font-weight:700}
+  .tag.g{background:#e6f6ef;color:#127a52}
+  .tag.y{background:#fdf4dd;color:#8a6508}
+  .tag.r{background:#fdecea;color:#a8342a}
+  .list{max-height:340px;overflow:auto}
+  .srow{display:flex;justify-content:space-between;padding:7px 4px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+  .srow:hover{background:#f7fbfa}
+  .srow .tot{font-weight:700;color:var(--acc)}
+  .kv{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:#43635f}
+  .kv label{display:flex;gap:5px;align-items:center}
+  details{margin-top:6px}
+  summary{cursor:pointer;font-size:13px;color:var(--acc);font-weight:700}
+  .warnbox{background:#fff8e6;border:1px solid #f0dca8;color:#7a5a00;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.7;margin-bottom:12px}
+
+  /* ================= 手机端 ================= */
+  body{-webkit-text-size-adjust:100%}
+  button,.item .o{touch-action:manipulation}
+  .mbar{position:fixed;left:0;right:0;bottom:0;display:none;gap:8px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.97);border-top:1px solid var(--line);z-index:60;
+    box-shadow:0 -4px 16px rgba(21,122,110,.10)}
+  .mbar button{flex:1;min-height:48px;border-radius:12px;border:none;font-size:16px;font-weight:800;
+    background:var(--acc);color:#fff;font-family:inherit}
+  .mbar button.ghost{flex:0 0 86px;background:#fff;color:var(--acc);border:1.5px solid var(--acc)}
+  .mbar button:active{transform:scale(.98)}
+  #toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:rgba(15,95,87,.94);color:#fff;
+    padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:80;max-width:86vw;text-align:center}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:600px){
+    header{padding:10px 12px 0}
+    header .ttl{font-size:15px}
+    header .sub{font-size:11px;line-height:1.5}
+    nav button{font-size:12px;padding:9px 0;border-radius:9px 9px 0 0}
+    main{padding:10px 10px 92px}
+    .box{padding:12px;border-radius:13px;margin-bottom:10px}
+    .box h3{font-size:13.5px}
+    .statusbar{padding:9px 11px;font-size:12px;border-radius:11px;margin-bottom:10px}
+    .statusbar b{font-size:18px}
+    .sec .hd{font-size:12.5px}
+    .items{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .item{padding:4px 5px;gap:3px}
+    .item .no{min-width:15px;font-size:11px}
+    .item .o{min-height:42px;font-size:15px;padding:0;border-radius:8px}
+    .item input.tx,.item input.sc{min-height:42px;font-size:16px;padding:8px 6px}
+    .mbar{display:flex}
+    .kpi{grid-template-columns:repeat(2,1fr)}
+    .kpi .v{font-size:17px}
+    .brow .lb{width:60px;font-size:11px}
+    table{font-size:12px}
+    th,td{padding:6px 4px}
+    .list{max-height:none}
+    .srow{font-size:12.5px;gap:6px}
+    #topWrong,#itemStat{font-size:11.5px}
+    .warnbox{font-size:12px}
+    .row{gap:7px}
+    input,select,textarea{font-size:15px}
+    button.btn{min-height:44px;font-size:14px}
+  }
+
+  @media print{header,nav,.noprint{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="ttl">英语答题卡 · 阅卷工具</div>
+  <div class="sub">冠县第一学期英语期中考试 · 满分 100 分 · 40 选择 + 10 判断 + 5 单词 + 作文</div>
+  <nav>
+    <button id="tabQuiz" class="on" onclick="tab('quiz')">阅卷</button>
+    <button id="tabStat" onclick="tab('stat')">统计</button>
+    <button id="tabKey" onclick="tab('key')">标准答案</button>
+    <button id="tabExp" onclick="tab('exp')">导出 / 名单</button>
+    <button id="tabHelp" onclick="tab('help')">帮助</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ==================== 阅卷 ==================== -->
+<section id="pQuiz" class="panel on">
+  <div class="statusbar">
+    <div>当前第 <b id="stuIdx">1</b> / <span id="stuTotal">0</span> 份</div>
+    <div>得分 <b id="liveTotal">0</b> / 100</div>
+    <div id="liveWrong" style="font-size:12px;opacity:.9"></div>
+  </div>
+
+  <div class="box noprint">
+    <div class="row">
+      <input id="inNo" placeholder="学号（可留空）" style="width:130px" enterkeyhint="next">
+      <input id="inName" placeholder="姓名" style="width:130px" enterkeyhint="done">
+      <button class="btn" onclick="saveStudent(true)">保存并下一份</button>
+      <button class="btn ghost" onclick="saveStudent(false)">只保存</button>
+      <button class="btn ghost" onclick="prevStudent()">上一份</button>
+      <button class="btn ghost" onclick="nextStudent()">下一份</button>
+      <button class="btn warn" onclick="clearForm()">清空本题卡</button>
+    </div>
+    <div class="hint" style="margin-top:8px">键盘直接打：A/B/C/D/E、T/F；单词题打完按回车跳下一题。已经录过的答案会自动判分并标红。</div>
+  </div>
+
+  <div id="quizBody"></div>
+
+  <div class="box noprint">
+    <div class="row">
+      <button class="btn" onclick="saveStudent(true)">保存并下一份 →</button>
+      <span class="hint" id="saveTip"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 统计 ==================== -->
+<section id="pStat" class="panel">
+  <div class="box">
+    <h3>班级总览</h3>
+    <div class="kpi" id="kpiBox"></div>
+  </div>
+  <div class="box">
+    <h3>分数段分布</h3>
+    <div id="distBox"></div>
+  </div>
+  <div class="box">
+    <h3>逐题正确率（红＝需讲评）</h3>
+    <div class="list" style="max-height:none"><div id="itemStat" style="font-size:12px;line-height:2"></div></div>
+  </div>
+  <div class="box">
+    <h3>易错题 TOP 10</h3>
+    <div id="topWrong" class="hint"></div>
+  </div>
+  <div class="box">
+    <h3>学生成绩明细</h3>
+    <div class="list" id="scoreList"></div>
+  </div>
+</section>
+
+<!-- ==================== 标准答案 ==================== -->
+<section id="pKey" class="panel">
+  <div class="warnbox">
+    先把标准答案填好，再开始阅卷。选项题只能用给定字母；单词题可写多个可接受答案，用「|」隔开，例如 <b>apple|apples</b>；不区分大小写和空格。
+  </div>
+  <div class="box">
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn" onclick="fillKeyFromCurrent()">把当前这份答案设为标准答案</button>
+      <button class="btn ghost" onclick="clearKey()">清空标准答案</button>
+      <button class="btn ghost" onclick="editValue()">改每题分值</button>
+    </div>
+    <div class="kv" id="keyStatus" style="margin-bottom:10px"></div>
+  </div>
+  <div id="keyBody"></div>
+</section>
+
+<!-- ==================== 导出 ==================== -->
+<section id="pExp" class="panel">
+  <div class="box">
+    <h3>导出成绩</h3>
+    <div class="row">
+      <button class="btn" onclick="exportCSV()">下载成绩明细 CSV（Excel 可直接打开）</button>
+      <button class="btn ghost" onclick="copySummary()">复制班级汇总文字</button>
+      <button class="btn warn" onclick="clearAll()">清空全部数据</button>
+    </div>
+    <div class="hint" style="margin-top:8px">数据只保存在本机浏览器里。换电脑/换浏览器请先导出 CSV。</div>
+  </div>
+  <div class="box">
+    <h3>导入学生名单（可选）</h3>
+    <div class="hint" style="margin-bottom:8px">每行一个学生，格式：<b>学号 姓名</b> 或直接写 <b>姓名</b>。导入后按名单顺序阅卷，不怕漏人。</div>
+    <textarea id="rosterTa" rows="5" style="width:100%" placeholder="01 张三&#10;02 李四&#10;03 王五"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" onclick="importRoster()">导入名单</button>
+      <button class="btn ghost" onclick="clearRoster()">清空名单</button>
+      <span class="hint" id="rosterTip"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 帮助 ==================== -->
+<section id="pHelp" class="panel">
+  <div class="box">
+    <h3>三步上手</h3>
+    <div class="hint">
+      ① 打开「标准答案」，按答题卡顺序填答案（也可以先录一份满分的正确答卷，点「把当前这份答案设为标准答案」）。<br>
+      ② 打开「阅卷」，输入学号姓名，按卷面点选项或直接敲键盘，录完点「保存并下一份」。<br>
+      ③ 全部录完后到「统计」看平均分、分数段、逐题正确率、易错题排行；到「导出」下载 CSV 交差。
+    </div>
+  </div>
+  <div class="box">
+    <h3>本卷结构（按你给的答题卡）</h3>
+    <table>
+      <thead><tr><th class="l">大题</th><th>题数</th><th>每题</th><th>小计</th><th class="l">作答方式</th></tr></thead>
+      <tbody id="structBody"></tbody>
+    </table>
+    <div class="hint" style="margin-top:8px">合计 <b>100 分</b>。若你的卷面分值与这里不一致，在「标准答案 → 改每题分值」里调整即可。</div>
+  </div>
+  <div class="box">
+    <h3>使用提示</h3>
+    <div class="hint">
+      · 作文是主观题，直接输 0–10 的分数，不参与自动比对。<br>
+      · 补全单词判分不区分大小写；写多个正确答案用 | 分隔。<br>
+      · 录错了随时点回那一题重选，会实时重算。<br>
+      · 数据存在本机浏览器，清浏览器缓存会丢，记得导 CSV。
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="mbar">
+  <button class="ghost" onclick="prevStudent()">上一份</button>
+  <button onclick="saveStudent(true)">保存并下一份</button>
+  <button class="ghost" onclick="clearForm()">清空</button>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ===================== 卷面结构 ===================== */
+const SECS = [
+  {id:"s1",  short:"一", t:"听录音，选单词",      n:5, per:1,  opts:["A","B","C"],       start:1},
+  {id:"s2",  short:"二", t:"听录音，选图片",      n:5, per:1,  opts:["A","B","C","D","E"],start:1},
+  {id:"s3",  short:"三", t:"听录音，判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1},
+  {id:"s4",  short:"四", t:"听录音，选答语",      n:5, per:2,  opts:["A","B","C"],       start:1},
+  {id:"s5",  short:"五", t:"听对话，选答案",      n:5, per:2,  opts:["A","B","C"],       start:1},
+  {id:"s6",  short:"六", t:"单项选择",            n:5, per:1,  opts:["A","B","C"],       start:1},
+  {id:"s7",  short:"七", t:"补全单词",            n:5, per:2,  opts:["TEXT"],            start:21},
+  {id:"s8",  short:"八", t:"完形填空",            n:5, per:1,  opts:["A","B","C"],       start:1},
+  {id:"s9",  short:"九", t:"补全对话",            n:5, per:2,  opts:["A","B","C","D","E"],start:1},
+  {id:"s10", short:"十(一)", t:"阅读判断 T / F",   n:5, per:2,  opts:["T","F"],           start:1},
+  {id:"s11", short:"十(二)", t:"阅读选择",         n:5, per:2,  opts:["A","B","C"],       start:1},
+  {id:"s12", short:"十一", t:"书面表达（主观）",   n:1, per:10, opts:["SCORE"],           start:1}
+];
+
+const LS = "ywyd_yingyu_bdb_v1";
+const state = {
+  key:{}, per:{}, students:[], roster:[], idx:0, activeId:null
+};
+
+/* ===================== 基础工具 ===================== */
+const $ = id => document.getElementById(id);
+const itemsOf = s => Array.from({length:s.n}, (_,i)=>s.id+"-"+(i+1));
+const allIds = () => SECS.reduce((a,s)=>a.concat(itemsOf(s)), []);
+const num = v => (v===undefined||v===null||v==="") ? NaN : parseFloat(v);
+const r2 = n => Math.round(n*100)/100;
+const isScore = s => s.opts[0] === "SCORE";
+const isText  = s => s.opts[0] === "TEXT";
+const secOf = id => SECS.find(s => id.startsWith(s.id + "-"));
+const perOf = id => { const s = secOf(id); return (state.per[s.id]!==undefined ? state.per[s.id] : s.per); };
+
+function norm(v){
+  return String(v==null?"":v).trim().toLowerCase()
+    .replace(/[\s\u3000]/g,"").replace(/[，。、,.!?！？;；:："'“”()（）]/g,"");
+}
+function keyOf(id){ return state.key[id] || ""; }
+function keyMatch(ans, key){
+  if(!key) return null;
+  const ks = key.split("|").map(norm);
+  return ks.includes(norm(ans));
+}
+function labelOf(id){
+  const s = secOf(id);
+  const i = parseInt(id.split("-")[1], 10);
+  return s.short + "-" + (s.start + i - 1);
+}
+
+/* ===================== 判分 ===================== */
+function gradeOne(ans){
+  const scores = {}, wrong = [];
+  let total = 0, objTotal = 0, objRight = 0, unanswered = 0;
+  SECS.forEach(s => {
+    let sc = 0;
+    for(let i=0;i<s.n;i++){
+      const id = s.id + "-" + (i+1);
+      const v = ans[id];
+      if(isScore(s)){
+        const n = num(v);
+        if(!isNaN(n)) sc += Math.max(0, Math.min(perOf(id), n));
+        continue;
+      }
+      const k = keyOf(id);
+      if(!k) continue;
+      objTotal++;
+      if(v === undefined || v === null || String(v).trim() === ""){
+        unanswered++; wrong.push(labelOf(id) + "(空)");
+      }else if(keyMatch(v,k)){ sc += perOf(id); objRight++; }
+      else { wrong.push(labelOf(id)); }
+    }
+    scores[s.id] = r2(sc);
+    total += sc;
+  });
+  return {scores, total:r2(total), objTotal, objRight, unanswered, wrong};
+}
+function maxTotal(){ return SECS.reduce((a,s)=>a + s.n * (state.per[s.id]!==undefined?state.per[s.id]:s.per), 0); }
+
+/* ===================== 渲染 · 阅卷 ===================== */
+function renderQuiz(){
+  const body = $("quizBody");
+  let html = "";
+  SECS.forEach(s => {
+    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
+    html += '<div class="box sec"><div class="hd"><div>' + s.short + '、' + s.t +
+            '</div><span>' + s.n + ' 题 × ' + per + ' 分 = ' + (s.n*per) + ' 分</span></div><div class="items">';
+    for(let i=0;i<s.n;i++){
+      const id = s.id + "-" + (i+1);
+      const no = s.start + i;
+      html += '<div class="item" id="it_' + id + '" data-id="' + id + '"><span class="no">' + no + '</span>';
+      if(isText(s)){
+        html += '<input class="tx" data-id="' + id + '" placeholder="拼写" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">';
+      }else if(isScore(s)){
+        html += '<input class="sc" type="number" inputmode="numeric" min="0" max="' + per + '" step="1" data-id="' + id + '" placeholder="0-' + per + '" enterkeyhint="done">';
+      }else{
+        s.opts.forEach(o => {
+          html += '<button class="o" data-id="' + id + '" data-v="' + o + '">' + o + '</button>';
+        });
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+  body.innerHTML = html;
+
+  // 绑定
+  body.querySelectorAll("button.o").forEach(b=>{
+    b.onclick = () => { setAns(b.dataset.id, b.dataset.v); setActive(b.dataset.id); refreshMarks(); advance(b.dataset.id); };
+  });
+  body.querySelectorAll("input.tx").forEach(inp=>{
+    inp.oninput = () => { setAns(inp.dataset.id, inp.value); refreshMarks(); };
+    inp.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); advance(inp.dataset.id); } };
+    inp.onfocus = () => setActive(inp.dataset.id, false);
+  });
+  body.querySelectorAll("input.sc").forEach(inp=>{
+    inp.oninput = () => { setAns(inp.dataset.id, inp.value); refreshMarks(); };
+    inp.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); inp.blur(); } };
+    inp.onfocus = () => setActive(inp.dataset.id, false);
+  });
+}
+
+let cur = {};   // 当前正在录入的答卷答案
+function setAns(id, v){
+  if(v === "" || v === null || v === undefined) delete cur[id];
+  else cur[id] = String(v);
+  const s = secOf(id);
+  const el = $("it_" + id);
+  if(!el) return;
+  if(!isText(s) && !isScore(s)){
+    el.querySelectorAll("button.o").forEach(b=>{
+      b.classList.toggle("sel", String(cur[id]) === b.dataset.v);
+    });
+  }else{
+    const inp = el.querySelector("input");
+    if(inp && inp.value !== String(cur[id] || "")) inp.value = cur[id] || "";
+  }
+}
+function setActive(id, scroll=true){
+  document.querySelectorAll(".item.active").forEach(e=>e.classList.remove("active"));
+  const el = $("it_" + id);
+  if(!el) return;
+  el.classList.add("active");
+  state.activeId = id;
+  if(scroll) el.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+function nextId(id){
+  const ids = allIds();
+  const i = ids.indexOf(id);
+  return i >= 0 && i < ids.length-1 ? ids[i+1] : null;
+}
+function advance(id){
+  const nx = nextId(id);
+  if(!nx) return;
+  setActive(nx);
+  const el = $("it_" + nx);
+  const inp = el && el.querySelector("input");
+  if(inp) inp.focus();
+}
+function refreshMarks(){
+  const g = gradeOne(cur);
+  $("liveTotal").textContent = g.total;
+  $("liveWrong").textContent = g.objTotal ? ("客观题 " + g.objRight + " / " + g.objTotal) : "标准答案未填";
+  // 标出对错
+  SECS.forEach(s=>{
+    if(isScore(s)) return;
+    for(let i=0;i<s.n;i++){
+      const id = s.id + "-" + (i+1);
+      const el = $("it_" + id);
+      if(!el) continue;
+      const k = keyOf(id);
+      const v = cur[id];
+      el.querySelectorAll("button.o").forEach(b=>{
+        b.classList.remove("right","wrong");
+        if(!k || v === undefined) return;
+        if(String(v) === b.dataset.v) b.classList.add(keyMatch(v,k) ? "right" : "wrong");
+      });
+      const inp = el.querySelector("input.tx");
+      if(inp){
+        inp.style.borderColor = (!k || !v) ? "" : (keyMatch(v,k) ? "#25a97a" : "#d35b4d");
+      }
+    }
+  });
+}
+
+/* ===================== 学生存取 ===================== */
+function loadStudent(i){
+  const s = state.students[i];
+  if(!s) return;
+  cur = Object.assign({}, s.ans || {});
+  $("inNo").value = s.no || "";
+  $("inName").value = s.name || "";
+  state.idx = i;
+  // 回填界面
+  allIds().forEach(id=>{
+    const el = $("it_" + id);
+    if(!el) return;
+    if(el.querySelector("button.o")){
+      el.querySelectorAll("button.o").forEach(b=>b.classList.toggle("sel", String(cur[id]) === b.dataset.v));
+    }else{
+      const inp = el.querySelector("input");
+      if(inp) inp.value = cur[id] !== undefined ? cur[id] : "";
+    }
+  });
+  refreshMarks();
+  refreshStuBar();
+}
+function refreshStuBar(){
+  $("stuIdx").textContent = state.students.length ? (state.idx + 1) : 1;
+  $("stuTotal").textContent = state.students.length;
+}
+function saveStudent(autoNext){
+  const no = $("inNo").value.trim(), name = $("inName").value.trim();
+  if(!name && !no){ alert("至少填个姓名或学号，不然分不清是谁的卷子。"); return; }
+  const g = gradeOne(cur);
+  const rec = {no, name, ans:Object.assign({}, cur), scores:g.scores, total:g.total,
+               objTotal:g.objTotal, objRight:g.objRight, wrong:g.wrong, pending:false};
+  // 同一学号/姓名就覆盖，否则新增
+  let hit = -1;
+  if(no) hit = state.students.findIndex(s=>s.no && s.no === no);
+  if(hit < 0 && name) hit = state.students.findIndex(s=>!s.no && s.name === name);
+  if(hit >= 0) state.students[hit] = rec; else state.students.push(rec);
+  persist();
+  toast("已保存 " + (name || no) + " · " + g.total + " 分");
+  $("saveTip").textContent = "已保存：" + (name || no) + "  " + g.total + " 分";
+  renderStats();
+  if(autoNext){
+    if(hit >= 0){ loadStudent(Math.min(hit + 1, state.students.length - 1)); }
+    else { clearForm(true); clearName(); state.idx = state.students.length; prefillRoster(); refreshStuBar(); }
+  }
+}
+function prevStudent(){ if(state.idx > 0) loadStudent(state.idx - 1); }
+function nextStudent(){
+  if(state.idx < state.students.length - 1) loadStudent(state.idx + 1);
+  else { clearForm(true); clearName(); state.idx = state.students.length; prefillRoster(); refreshStuBar(); }
+}
+function clearName(){ $("inNo").value = ""; $("inName").value = ""; }
+function prefillRoster(){
+  const r = state.roster[state.students.filter(s=>!s.pending).length];
+  if(r){ $("inNo").value = r.no || ""; $("inName").value = r.name || ""; }
+}
+function clearForm(silent){
+  if(!silent && !confirm("清空当前这份答题卡？（已保存的记录不受影响）")) return;
+  cur = {};
+  allIds().forEach(id=>{
+    const el = $("it_" + id); if(!el) return;
+    el.querySelectorAll("button.o").forEach(b=>b.classList.remove("sel","right","wrong"));
+    const inp = el.querySelector("input");
+    if(inp){ inp.value = ""; inp.style.borderColor = ""; }
+  });
+  if(!silent){ $("inNo").value = ""; $("inName").value = ""; }
+  refreshMarks();
+}
+
+/* ===================== 统计 ===================== */
+function stats(){
+  const ss = state.students.filter(s=>!s.pending);
+  const n = ss.length;
+  const totals = ss.map(s=>s.total);
+  const sum = totals.reduce((a,b)=>a+b,0);
+  const max = maxTotal();
+  const avg = n ? sum/n : 0;
+  const pass = totals.filter(t=>t >= max*0.6).length;
+  const good = totals.filter(t=>t >= max*0.85).length;
+  const byItem = {};
+  allIds().forEach(id=>{ byItem[id] = {right:0, done:0, dist:{}}; });
+  ss.forEach(s=>{
+    allIds().forEach(id=>{
+      const sec = secOf(id);
+      if(isScore(sec)) return;
+      const v = s.ans ? s.ans[id] : undefined;
+      if(v === undefined || String(v).trim() === "") return;
+      byItem[id].done++;
+      byItem[id].dist[v] = (byItem[id].dist[v] || 0) + 1;
+      if(keyMatch(v, keyOf(id))) byItem[id].right++;
+    });
+  });
+  return {n, sum, avg, max, min: n?Math.min(...totals):0, top: n?Math.max(...totals):0,
+          pass, good, byItem, totals};
+}
+function renderStats(){
+  const st = stats();
+  $("kpiBox").innerHTML =
+    kpi(st.n, "已阅份数") + kpi(st.n ? r2(st.avg) : 0, "平均分") +
+    kpi(st.top, "最高分") + kpi(st.min, "最低分") +
+    kpi(st.n ? Math.round(st.pass/st.n*100) + "%" : "—", "及格率") +
+    kpi(st.n ? Math.round(st.good/st.n*100) + "%" : "—", "优秀率");
+
+  // 分数段
+  const edges = [[0,60],[60,70],[70,80],[80,90],[90,101]];
+  const labels = ["0-59","60-69","70-79","80-89","90-100"];
+  const counts = edges.map(([a,b]) => st.totals.filter(t=>t>=a && t<b).length);
+  const maxC = Math.max(1, ...counts);
+  $("distBox").innerHTML = counts.map((c,i)=>
+    '<div class="brow"><div class="lb">' + labels[i] + '</div><div class="barwrap"><div class="bar" style="width:' +
+    (c/maxC*100) + '%"></div></div><div style="width:56px">' + c + ' 人</div></div>').join("");
+
+  // 逐题正确率
+  let cells = "";
+  SECS.forEach(s=>{
+    if(isScore(s)) return;
+    let line = '<div style="margin-bottom:6px"><b style="color:#255551">' + s.short + '、' + s.t + '</b>　';
+    for(let i=0;i<s.n;i++){
+      const id = s.id + "-" + (i+1);
+      const it = st.byItem[id];
+      const no = s.start + i;
+      const rate = st.n ? Math.round(it.right/st.n*100) : 0;
+      const cls = rate >= 85 ? "g" : (rate >= 60 ? "y" : "r");
+      line += '<span style="margin-right:9px;display:inline-block">' + no +
+              ' <span class="tag ' + cls + '">' + (st.n ? rate + "%" : "—") + '</span></span>';
+    }
+    line += '</div>';
+    cells += line;
+  });
+  $("itemStat").innerHTML = st.n ? cells : '<div class="hint">还没有录入成绩。</div>';
+
+  // 易错题
+  const arr = allIds().filter(id=>!isScore(secOf(id))).map(id=>{
+    const it = st.byItem[id];
+    const rate = st.n ? it.right/st.n : 1;
+    return {id, rate, dist:it.dist, no:labelOf(id)};
+  }).sort((a,b)=>a.rate-b.rate).slice(0,10);
+  $("topWrong").innerHTML = st.n ? arr.map((x,i)=>{
+    const d = Object.keys(x.dist||{}).map(k=>k + ":" + x.dist[k]).join("  ");
+    return '<div style="margin-bottom:5px">' + (i+1) + '. <b>' + x.no + '</b>　正确率 ' +
+      Math.round(x.rate*100) + '%　<span style="color:#6b807d">' + d + '</span></div>';
+  }).join("") : "—";
+
+  // 学生明细
+  $("scoreList").innerHTML = state.students.length ? state.students.map((s,i)=>
+    '<div class="srow" onclick="gotoStudent(' + i + ')"><div>' + (i+1) + '. ' +
+      (s.name || "（无名）") + ' <span style="color:#8aa09c">' + (s.no || "") + '</span></div>' +
+      '<div style="color:#6b807d">' + (s.pending ? "未阅" :
+        ('错：' + (s.wrong && s.wrong.length ? s.wrong.join("、") : "全对")).slice(0, 60)) +
+      '</div><div class="tot">' + (s.pending ? "—" : s.total) + '</div></div>').join("")
+    : '<div class="hint">还没有录入成绩。</div>';
+}
+function kpi(v,k){ return '<div><div class="v">' + v + '</div><div class="k">' + k + '</div></div>'; }
+function gotoStudent(i){ tab('quiz'); loadStudent(i); }
+
+/* ===================== 标准答案 ===================== */
+function renderKey(){
+  let html = "";
+  SECS.forEach(s=>{
+    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
+    html += '<div class="box"><h3>' + s.short + '、' + s.t + ' <span style="font-weight:500;color:#6b807d;font-size:12px">每题 ' + per + ' 分</span></h3><div class="items">';
+    for(let i=0;i<s.n;i++){
+      const id = s.id + "-" + (i+1);
+      const no = s.start + i;
+      html += '<div class="item"><span class="no">' + no + '</span>';
+      if(isScore(s)){
+        html += '<span class="hint" style="padding:4px 6px">主观题，无需答案</span>';
+      }else if(isText(s)){
+        html += '<input class="tx" data-kid="' + id + '" placeholder="答案，可写 a|b" value="' + (state.key[id]||"").replace(/"/g,"&quot;") + '">';
+      }else{
+        html += '<select data-kid="' + id + '" style="flex:1;font-size:13px;padding:6px 4px"><option value="">—</option>' +
+          s.opts.map(o=>'<option value="' + o + '"' + (state.key[id] === o ? " selected" : "") + '>' + o + '</option>').join("") +
+          '</select>';
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+  $("keyBody").innerHTML = html;
+  $("keyBody").querySelectorAll("select,input[data-kid]").forEach(el=>{
+    el.onchange = () => {
+      const id = el.dataset.kid;
+      if(el.value.trim()) state.key[id] = el.value.trim(); else delete state.key[id];
+      persistKey(); refreshMarks(); renderKeyStatus();
+    };
+  });
+  renderKeyStatus();
+}
+function renderKeyStatus(){
+  const objIds = allIds().filter(id=>{ const s = secOf(id); return !isScore(s); });
+  const filled = objIds.filter(id=>keyOf(id)).length;
+  $("keyStatus").innerHTML = '<div>标准答案：<b style="color:' + (filled===objIds.length ? "#127a52" : "#a8342a") + '">' +
+    filled + " / " + objIds.length + '</b> 已填</div><div>卷面满分：<b>' + maxTotal() + '</b> 分</div>';
+}
+function fillKeyFromCurrent(){
+  if(!confirm("用当前这份答卷作为标准答案？会把现在的标准答案整体替换。")) return;
+  const ids = allIds().filter(id=>!isScore(secOf(id)));
+  const empty = ids.filter(id=>!cur[id]);
+  if(empty.length && !confirm("当前答卷还有 " + empty.length + " 题没填，仍然覆盖？")) return;
+  state.key = {};
+  ids.forEach(id=>{ if(cur[id]) state.key[id] = cur[id]; });
+  persistKey(); renderKey(); refreshMarks();
+  alert("已设为标准答案。");
+}
+function clearKey(){
+  if(!confirm("清空标准答案？")) return;
+  state.key = {}; persistKey(); renderKey(); refreshMarks();
+}
+function editValue(){
+  const t = prompt("输入「大题序号:新分值」，例如 3:2（把第三大题改成每题 2 分）。\n大题序号：1 一 ~ 12 十一", "");
+  if(!t) return;
+  const m = t.split(":").map(x=>x.trim());
+  const i = parseInt(m[0],10);
+  const v = parseFloat(m[1]);
+  if(!(i >= 1 && i <= SECS.length) || isNaN(v) || v <= 0){ alert("格式不对，示例：3:2"); return; }
+  state.per[SECS[i-1].id] = v;
+  persistKey(); renderQuiz();
+  allIds().forEach(id=>{ if(cur[id] !== undefined) setAns(id, cur[id]); });
+  renderKey(); refreshMarks(); renderStats();
+}
+
+/* ===================== 名单 / 导出 ===================== */
+function importRoster(){
+  const raw = $("rosterTa").value.trim();
+  if(!raw){ alert("先把名单粘贴进来。"); return; }
+  const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const roster = lines.map(l=>{
+    const parts = l.split(/[\s,，\t]+/);
+    if(parts.length >= 2) return {no:parts[0], name:parts.slice(1).join("")};
+    return {no:"", name:parts[0]};
+  });
+  state.roster = roster;
+  persist();
+  $("rosterTip").textContent = "已导入 " + roster.length + " 人。点「下一份」会自动按名单顺序带出姓名。";
+  // 名单里没有成绩的，预填到 students 占位
+  roster.forEach(r=>{
+    const exists = state.students.some(s => (r.no && s.no === r.no) || (!r.no && s.name === r.name));
+    if(!exists) state.students.push({no:r.no, name:r.name, ans:{}, total:0, scores:{}, objTotal:0, objRight:0, wrong:[], pending:true});
+  });
+  persist(); renderStuBar(); renderStats();
+}
+function clearRoster(){ state.roster = []; $("rosterTip").textContent = ""; persist(); }
+
+function exportCSV(){
+  const graded = state.students.filter(s=>!s.pending);
+  if(!graded.length){ alert("还没有成绩可导出。"); return; }
+  const head = ["序号","学号","姓名"].concat(SECS.map(s=>s.short+"、"+s.t)).concat(["总分","客观题正确","错题"]);
+  const rows = [head];
+  graded.forEach((s,i)=>{
+    rows.push([i+1, s.no||"", s.name||""]
+      .concat(SECS.map(sec => (s.scores && s.scores[sec.id] !== undefined) ? s.scores[sec.id] : 0))
+      .concat([s.total, (s.objRight||0) + "/" + (s.objTotal||0), (s.wrong||[]).join(" ")]));
+  });
+  const csv = rows.map(r=>r.map(c=>{
+    const v = String(c==null?"":c);
+    return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+  }).join(",")).join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "英语期中成绩_" + new Date().toLocaleDateString("zh-CN").replace(/\//g,"-") + ".csv";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+}
+function copySummary(){
+  const st = stats();
+  if(!st.n){ alert("还没有成绩。"); return; }
+  const txt = "【冠县第一学期英语期中考试 · 成绩汇总】\n" +
+    "参考人数：" + st.n + " 人\n" +
+    "平均分：" + r2(st.avg) + "　最高：" + st.top + "　最低：" + st.min + "\n" +
+    "及格率：" + Math.round(st.pass/st.n*100) + "%　优秀率：" + Math.round(st.good/st.n*100) + "%";
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert("已复制汇总，可直接粘贴到群里。"));
+  else alert(txt);
+}
+function clearAll(){
+  if(!confirm("清空全部数据（名单、标准答案、所有成绩）？建议先导出 CSV。")) return;
+  if(!confirm("再确认一次：真的清空？")) return;
+  state.key = {}; state.per = {}; state.students = []; state.roster = []; state.idx = 0; cur = {};
+  localStorage.removeItem(LS);
+  renderQuiz(); renderKey(); renderStats(); renderStuBar(); clearForm(true);
+}
+
+/* ===================== 提示 ===================== */
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById("toast");
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("on"), 1600);
+}
+
+/* ===================== 持久化 ===================== */
+function persist(){
+  try{
+    localStorage.setItem(LS, JSON.stringify({
+      key: state.key, per: state.per,
+      students: state.students, roster: state.roster
+    }));
+  }catch(e){}
+}
+function persistKey(){
+  if(!state.key) state.key = {};
+  persist();
+}
+
+/* ===================== Tab ===================== */
+function tab(name){
+  const map = {quiz:"pQuiz", stat:"pStat", key:"pKey", exp:"pExp", help:"pHelp"};
+  const btns = {quiz:"tabQuiz", stat:"tabStat", key:"tabKey", exp:"tabExp", help:"tabHelp"};
+  Object.keys(map).forEach(k=>{
+    $(map[k]).classList.toggle("on", k === name);
+    $(btns[k]).classList.toggle("on", k === name);
+  });
+  if(name === "stat") renderStats();
+  if(name === "key") renderKey();
+  window.scrollTo(0,0);
+}
+
+/* ===================== 键盘 ===================== */
+function bindKeyboard(){
+  document.addEventListener("keydown", e=>{
+    const tag = (e.target.tagName || "").toUpperCase();
+    if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    const id = state.activeId;
+    if(!id) return;
+    const sec = secOf(id);
+    if(isText(sec) || isScore(sec)) return;
+    const k = e.key.toUpperCase();
+    if(sec.opts.includes(k)){
+      e.preventDefault();
+      setAns(id, k); refreshMarks(); advance(id);
+    }
+  });
+}
+
+/* ===================== 启动 ===================== */
+function init(){
+  // 恢复
+  try{
+    const raw = localStorage.getItem(LS);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.key = d.key || {}; state.per = d.per || {};
+      state.students = d.students || []; state.roster = d.roster || [];
+    }
+  }catch(e){}
+  renderQuiz();
+  renderKey();
+  renderStats();
+  refreshStuBar();
+  bindKeyboard();
+  // 结构表
+  $("structBody").innerHTML = SECS.map(s=>{
+    const per = state.per[s.id]!==undefined ? state.per[s.id] : s.per;
+    return '<tr><td class="l">' + s.short + '、' + s.t + '</td><td>' + s.n + '</td><td>' + per +
+      '</td><td>' + (s.n*per) + '</td><td class="l">' +
+      (isScore(s) ? "主观给分" : (isText(s) ? "单词拼写" : s.opts.join(" / "))) + '</td></tr>';
+  }).join("");
+  refreshMarks();
+}
+
+if(typeof document !== "undefined" && document.addEventListener){
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+}
+</script>
+</body>
+</html>
