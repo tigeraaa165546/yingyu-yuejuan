@@ -1002,19 +1002,27 @@ function renderKey(){
   });
   $("keyBody").innerHTML = html;
   $("keyBody").querySelectorAll("select,input[data-kid]").forEach(el=>{
-    el.onchange = () => {
+    const save = () => {
       const id = el.dataset.kid;
       if(el.value.trim()) state.key[id] = el.value.trim(); else delete state.key[id];
       persistKey(); refreshMarks(); renderKeyStatus();
     };
+    el.onchange = () => { save(); if(el.tagName === "SELECT" && el.value) toast("已保存 " + labelOf(el.dataset.kid) + " = " + el.value); };
+    if(el.tagName === "INPUT") el.oninput = save;
   });
   renderKeyStatus();
 }
 function renderKeyStatus(){
-  const objIds = allIds().filter(id=>{ const s = secOf(id); return !isScore(s); });
+  const objIds = allIds().filter(id=>{ const s = secOf(id); return !isText(s) && !isScore(s); });
+  const txtIds = allIds().filter(id=>{ const s = secOf(id); return isText(s); });
   const filled = objIds.filter(id=>keyOf(id)).length;
-  $("keyStatus").innerHTML = '<div>标准答案：<b style="color:' + (filled===objIds.length ? "#127a52" : "#a8342a") + '">' +
-    filled + " / " + objIds.length + '</b> 已填</div><div>卷面满分：<b>' + maxTotal() + '</b> 分</div>';
+  const filledT = txtIds.filter(id=>keyOf(id)).length;
+  const col = (a,b)=> a===b ? "#127a52" : "#a8342a";
+  $("keyStatus").innerHTML =
+    '<div>选择题答案：<b style="color:' + col(filled,objIds.length) + '">' + filled + " / " + objIds.length + '</b> 已填（自动保存）</div>' +
+    '<div>单词题答案：<b style="color:' + col(filledT,txtIds.length) + '">' + filledT + " / " + txtIds.length + '</b> 已填</div>' +
+    '<div>卷面满分：<b>' + maxTotal() + '</b> 分' + (filled===objIds.length && filledT===txtIds.length ? ' · 答案齐了，可以去拍卡' : ' · 还没填完') + '</div>';
+  renderCamScore();
 }
 function fillKeyFromCurrent(){
   if(!confirm("用当前这份答卷作为标准答案？会把现在的标准答案整体替换。")) return;
@@ -1227,7 +1235,7 @@ function camOnFile(e){
 }
 function camFitCanvas(){
   const cv = $("camCanvas"), im = camState.img;
-  const sc = Math.min(1, 1400/Math.max(im.width, im.height));
+  const sc = Math.min(1, 2000/Math.max(im.width, im.height));
   cv.width = Math.round(im.width*sc); cv.height = Math.round(im.height*sc);
   camDraw();
 }
@@ -1381,17 +1389,49 @@ function camRecognize(){
     return .299*D[o] + .587*D[o+1] + .114*D[o+2];
   };
   const res = {};
+  const S = W2 / 1001;                          // 每 pt 多少像素
+  const BX = Math.max(3, Math.round(5*S));      // 气泡框半宽（约 10pt 宽）
+  const BY = Math.max(2, Math.round(3*S));      // 气泡框半高（约 6pt 高）
+  const R  = Math.max(5, Math.round(6.5*S));    // 边框对齐搜索半径
+  const WW = Math.max(6, Math.round(12*S));     // 局部白窗口半径
+  // 某个候选中心处：框四边平均暗度的最小值（四边都黑才算找到框）
+  const boxAt = (cx, cy) => {
+    let sL=0, sR=0, sT=0, sB=0, n=0;
+    for(let j=-BY; j<=BY; j++){ sL += 1-lum(cx-BX, cy+j)/255; sR += 1-lum(cx+BX-1, cy+j)/255; n++; }
+    for(let i=-BX+1; i<=BX-2; i++){ sT += 1-lum(cx+i, cy-BY)/255; sB += 1-lum(cx+i, cy+BY)/255; }
+    const m = 2*BX-2;
+    return Math.min(sL/n, sR/n, sT/m, sB/m);
+  };
   for(const qid in CAL_Q){
     const dks = CAL_Q[qid].map(arr => {
       const [o,nx,ny] = arr, tx = nx*1001, ty = ny*709;
-      let tot = 0, cnt = 0;
-      for(let ix=-3; ix<=3; ix++) for(let iy=-2; iy<=2; iy++){
-        const den = h[6]*(tx+ix*0.95) + h[7]*(ty+iy*0.7) + 1;
-        const sx = (h[0]*(tx+ix*0.95) + h[1]*(ty+iy*0.7) + h[2]) / den;
-        const sy = (h[3]*(tx+ix*0.95) + h[4]*(ty+iy*0.7) + h[5]) / den;
-        tot += 1 - lum(sx, sy)/255; cnt++;
+      const den0 = h[6]*tx + h[7]*ty + 1;
+      const cx0 = (h[0]*tx + h[1]*ty + h[2]) / den0;
+      const cy0 = (h[3]*tx + h[4]*ty + h[5]) / den0;
+      // ① 框对齐：在期望位置附近找四边最黑的矩形
+      let best = -1, bx = cx0, by = cy0;
+      for(let dx=-R; dx<=R; dx++) for(let dy=-R; dy<=R; dy++){
+        const cx = Math.round(cx0)+dx, cy = Math.round(cy0)+dy;
+        if(cx-BX<1 || cy-BY<1 || cx+BX>=W2-1 || cy+BY>=H2-1) continue;
+        const s = boxAt(cx, cy);
+        if(s > best){ best = s; bx = cx; by = cy; }
       }
-      return [tot/cnt, o];
+      if(best < 0.25) return [0, o];           // 连框都没找到，不可信
+      // ② 局部纸面白（92 分位），抗光照不均
+      const wvals = [];
+      for(let j=-WW; j<=WW; j+=2) for(let i=-WW; i<=WW; i+=2){
+        const px = bx+i, py = by+j;
+        if(px>=0 && py>=0 && px<W2 && py<H2) wvals.push(lum(px, py));
+      }
+      wvals.sort((a,b)=>a-b);
+      const white = wvals.length ? wvals[Math.floor(wvals.length*0.92)] : 255;
+      // ③ 框内留白率：涂了碳粉的框几乎没有白像素
+      let wf = 0, cnt = 0;
+      for(let j=-BY+1; j<=BY-1; j++) for(let i=-BX+1; i<=BX-2; i++){
+        if(lum(bx+i, by+j) > white-60) wf++;
+        cnt++;
+      }
+      return [cnt ? 1-wf/cnt : 0, o];
     });
     dks.sort((a,b)=>b[0]-a[0]);
     res[qid] = dks;
@@ -1399,7 +1439,7 @@ function camRecognize(){
   camState.results = res;
   renderCamResult();
   camDraw();
-  const okN = Object.keys(res).filter(q=>res[q][0][0]>=0.30 && res[q][0][0]-res[q][1][0]>=0.10).length;
+  const okN = Object.keys(res).filter(q=>res[q][0][0]>=0.55 && res[q][0][0]-res[q][1][0]>=0.20).length;
   const sm = camScoreInfo();
   toast(sm.hasKey ? ("识别完成 · 客观题 " + sm.obj + " / " + sm.objMax) : ("识别完成：可确定 " + okN + " 题"));
 }
@@ -1448,7 +1488,7 @@ function renderCamScore(){
   let html = '<div class="scard">';
   if(!s.hasKey){
     html += '<div class="sbig">' + s.n + '<span>题已识别</span></div>' +
-            '<div class="shint">标准答案还没设，暂时只能数出识别到几题。去「标准答案」页把答案填上（或批改一份后点「按这份卷设为答案」），回来拍卡就直接出分。</div>';
+            '<div class="shint">选择题的标准答案还没设，暂时只能数出识别到几题。去「标准答案」页把选择题答案填完（会自动保存），回来拍卡就直接出分。</div>';
   }else{
     const pct = s.objMax ? Math.round(s.obj / s.objMax * 1000) / 10 : 0;
     html += '<div class="sbig">' + s.obj + '<span>/ ' + s.objMax + ' 客观题</span></div>' +
@@ -1494,9 +1534,9 @@ function camSave(){
 function camJudge(qid){
   const dks = camState.results[qid];
   const top = dks[0], sec = dks[1];
-  if(top[0] >= 0.30 && top[0]-sec[0] >= 0.10) return {v:top[1], s:"ok", dks};
-  if(top[0] >= 0.30 && top[0]-sec[0] < 0.10){
-    const amb = dks.filter(d=>d[0] >= top[0]-0.10).map(d=>d[1]).join("/");
+  if(top[0] >= 0.55 && top[0]-sec[0] >= 0.20) return {v:top[1], s:"ok", dks};
+  if(top[0] >= 0.55 && top[0]-sec[0] < 0.20){
+    const amb = dks.filter(d=>d[0] >= top[0]-0.20).map(d=>d[1]).join("/");
     return {v:null, s:"amb", amb, dks};
   }
   return {v:null, s:"none", dks};
